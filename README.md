@@ -22,13 +22,45 @@ pip install -e '.[dev]'
 # Build bundled UK gov catalogue and Taxi output
 orbital-api-taxonomy build --vertical gov-uk --out build/gov-uk
 
+# High-recall discovery across api.gov.uk, data.gov.uk and APIs.guru
+orbital-api-taxonomy build --vertical gov-uk --discover --max-records 500 --out build/gov-uk-discovered
+
+# Copy generated Taxi into the local Orbital workspace
+scripts/sync-orbital-workspace.sh
+
 # Run tests
 pytest
 ```
 
+## Orbital local testing
+
+An Orbital Docker Compose stack is checked in under `orbital-dev/`.
+
+```bash
+cd orbital-dev
+cp .env.example .env # edit UID/GID if your user is not 1000:1000
+docker compose up -d
+open http://localhost:9022
+```
+
+The generated Taxi project lives in `orbital-dev/workspace/`:
+
+- `taxi.conf` points Orbital at `workspace/src/`
+- `workspace.conf` registers the local project with Orbital
+- `workspace/src/*.taxi` is refreshed from `build/gov-uk-discovered/taxi/`
+
+Current discovery snapshot:
+
+- 647 catalogue records total
+- 242 from `api.gov.uk`
+- 361 from `data.gov.uk`
+- 35 from APIs.guru
+- 9 curated seed records
+- 1,337 field-to-taxonomy mappings generated from seed/openapi/sample fields
+
 ## Current MVP scope
 
-The repo ships with a curated seed catalogue for high-signal UK public APIs:
+The repo ships with a curated seed catalogue for high-signal UK public APIs, then expands it using public catalogues:
 
 - Companies House
 - Transport for London
@@ -39,6 +71,12 @@ The repo ships with a curated seed catalogue for high-signal UK public APIs:
 - Open Gazette API
 - UK Parliament APIs
 - ONS API
+
+Discovery providers currently implemented:
+
+- `api.gov.uk` A-Z catalogue scraper with detail-page endpoint/OpenAPI extraction
+- `data.gov.uk` CKAN package search
+- APIs.guru OpenAPI registry filtering
 
 The first taxonomy focuses on common civic/public-sector entities:
 
