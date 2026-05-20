@@ -1,0 +1,29 @@
+[build-system]
+requires = ["setuptools>=69", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "orbital-api-taxonomy"
+version = "0.1.0"
+description = "Discover public vertical APIs and map them to Taxi taxonomies for Orbital."
+readme = "README.md"
+requires-python = ">=3.10"
+authors = [{ name = "Jon Hammant" }]
+dependencies = [
+  "httpx>=0.27",
+  "pydantic>=2.7",
+  "pyyaml>=6.0",
+  "rich>=13.7",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8.2", "ruff>=0.5"]
+
+[project.scripts]
+orbital-api-taxonomy = "orbital_api_taxonomy.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.ruff]
+line-length = 100

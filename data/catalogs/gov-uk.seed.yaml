@@ -1,0 +1,138 @@
+vertical: gov-uk
+records:
+  - id: companies-house
+    name: Companies House API
+    vertical: gov-uk
+    provider: Companies House
+    base_url: https://api.company-information.service.gov.uk
+    docs_url: https://developer.company-information.service.gov.uk/
+    auth: api-key
+    licence: Crown copyright / Open Government Licence for public data
+    tags: [companies, organisations, filings]
+    source: curated
+    endpoints:
+      - path: /company/{company_number}
+        description: Company profile
+        sample_fields: [company_name, company_number, company_status, sic_codes, registered_office_address.address_line_1, registered_office_address.postal_code]
+      - path: /company/{company_number}/filing-history
+        description: Filing history
+        sample_fields: [company_number, category, date, description, type]
+  - id: tfl
+    name: Transport for London Unified API
+    vertical: gov-uk
+    provider: Transport for London
+    base_url: https://api.tfl.gov.uk
+    docs_url: https://api.tfl.gov.uk/
+    openapi_url: https://api.tfl.gov.uk/swagger/docs/v1
+    auth: optional-api-key
+    licence: TfL Open Data terms
+    tags: [transport, london, mobility]
+    source: curated
+    endpoints:
+      - path: /StopPoint/{id}
+        description: Stop/station details
+        sample_fields: [naptanId, commonName, lat, lon, stopType]
+      - path: /Line/{ids}/Disruption
+        description: Line disruptions
+        sample_fields: [lineId, description, reason, severity]
+  - id: govuk-content
+    name: GOV.UK Content API
+    vertical: gov-uk
+    provider: Government Digital Service
+    base_url: https://www.gov.uk/api
+    docs_url: https://docs.publishing.service.gov.uk/apis/content-store.html
+    auth: none
+    licence: Open Government Licence
+    tags: [content, publications, guidance]
+    source: curated
+    endpoints:
+      - path: /content/{base_path}
+        description: GOV.UK content item
+        sample_fields: [title, description, public_updated_at, document_type, details.body]
+  - id: police-uk
+    name: Police.uk API
+    vertical: gov-uk
+    provider: UK Police
+    base_url: https://data.police.uk/api
+    docs_url: https://data.police.uk/docs/
+    auth: none
+    licence: Open Government Licence
+    tags: [crime, police, neighbourhoods]
+    source: curated
+    endpoints:
+      - path: /crimes-street/all-crime
+        description: Street-level crime data
+        sample_fields: [category, location.latitude, location.longitude, location.street.name, month]
+  - id: environment-agency-flood
+    name: Environment Agency Flood Monitoring API
+    vertical: gov-uk
+    provider: Environment Agency
+    base_url: https://environment.data.gov.uk/flood-monitoring
+    docs_url: https://environment.data.gov.uk/flood-monitoring/doc/reference
+    auth: none
+    licence: Open Government Licence
+    tags: [environment, flood, observations]
+    source: curated
+    endpoints:
+      - path: /id/stations/{station}/readings
+        description: Flood monitoring readings
+        sample_fields: [dateTime, value, measure, stationReference, parameter]
+  - id: open-gazette
+    name: The Gazette API
+    vertical: gov-uk
+    provider: The Gazette
+    base_url: https://www.thegazette.co.uk
+    docs_url: https://www.thegazette.co.uk/data
+    auth: none
+    licence: Gazette data terms
+    tags: [notices, insolvency, public-record]
+    source: curated
+    endpoints:
+      - path: /all-notices/notice/data.json
+        description: Public notices search
+        sample_fields: [title, noticeCode, publicationDate, companyNumber, edition]
+  - id: parliament
+    name: UK Parliament APIs
+    vertical: gov-uk
+    provider: UK Parliament
+    base_url: https://members-api.parliament.uk
+    docs_url: https://developer.parliament.uk/
+    auth: none
+    licence: Open Parliament Licence
+    tags: [parliament, members, constituencies]
+    source: curated
+    endpoints:
+      - path: /api/Members/{id}
+        description: Member details
+        sample_fields: [id, nameDisplayAs, latestHouseMembership.membershipFrom, latestHouseMembership.membershipFromId]
+      - path: /api/Location/Constituency/Search
+        description: Constituency search
+        sample_fields: [constituencyName, memberId, postcode]
+  - id: ons
+    name: Office for National Statistics API
+    vertical: gov-uk
+    provider: Office for National Statistics
+    base_url: https://api.beta.ons.gov.uk/v1
+    docs_url: https://developer.ons.gov.uk/
+    auth: none
+    licence: Open Government Licence
+    tags: [statistics, datasets, observations]
+    source: curated
+    endpoints:
+      - path: /datasets/{dataset_id}/editions/{edition}/versions/{version}/observations
+        description: Dataset observations
+        sample_fields: [observation, dimensions, time, value]
+  - id: nhs-service-search
+    name: NHS Service Search / public APIs
+    vertical: gov-uk
+    provider: NHS England
+    base_url: https://api.nhs.uk
+    docs_url: https://developer.api.nhs.uk/
+    auth: api-key
+    licence: NHS API terms
+    tags: [health, services, organisations]
+    source: curated
+    endpoints:
+      - path: /service-search/search
+        description: NHS service search
+        sample_fields: [organisationName, organisationCode, postcode, addressLine1, latitude, longitude]

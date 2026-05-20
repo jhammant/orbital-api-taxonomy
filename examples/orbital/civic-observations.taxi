@@ -1,0 +1,10 @@
+namespace uk.gov.examples
+
+import uk.gov.Latitude
+import uk.gov.Longitude
+import uk.gov.ObservationTime
+import uk.gov.ObservationValue
+
+query FindGeoTemporalObservations {
+  find { Latitude, Longitude, ObservationTime, ObservationValue }
+}

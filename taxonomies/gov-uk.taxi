@@ -1,0 +1,22 @@
+namespace uk.gov
+
+// Hand-authored base taxonomy for UK public/civic APIs.
+type CompanyName inherits String
+type CompanyRegistrationNumber inherits String
+type CompanyStatus inherits String
+type StandardIndustrialClassificationCode inherits String
+type AddressLine inherits String
+type Postcode inherits String
+type Latitude inherits Decimal
+type Longitude inherits Decimal
+type TransportStopId inherits String
+type TransportRouteId inherits String
+type DisruptionDescription inherits String
+type PublicationTitle inherits String
+type PublicationDate inherits Date
+type ContentBody inherits String
+type NhsOrganisationCode inherits String
+type ParliamentMemberId inherits String
+type ConstituencyName inherits String
+type ObservationValue inherits Decimal
+type ObservationTime inherits Instant

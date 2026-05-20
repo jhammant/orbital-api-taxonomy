@@ -1,0 +1,11 @@
+namespace uk.gov.examples
+
+import uk.gov.CompanyName
+import uk.gov.CompanyRegistrationNumber
+import uk.gov.Postcode
+
+// Intended Orbital-style question this repo should support:
+// find providers that can return company identity plus a registered postcode.
+query FindCompanyIdentity {
+  find { CompanyName, CompanyRegistrationNumber, Postcode }
+}
