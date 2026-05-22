@@ -8,9 +8,16 @@ MVP vertical: **UK government / civic APIs**.
 
 1. Discovers candidate public APIs from machine-readable catalogues and curated registries.
 2. Normalises API metadata into a local catalogue.
-3. Extracts OpenAPI schemas where available.
-4. Maps API fields to canonical vertical concepts.
-5. Generates Taxi models and service stubs that Orbital can reason over.
+3. Maps every API's request **parameters** and response **fields** onto one shared
+   semantic taxonomy (`uk.gov`).
+4. Generates **callable** Taxi — `@HttpOperation` services with typed path/query
+   parameters and `jsonPath`-bound response models.
+5. Orbital loads that schema and can run live queries against the real gov APIs —
+   including queries that **chain multiple APIs together** because they share the
+   taxonomy.
+
+The curated catalogue covers 9 flagship UK gov APIs as fully callable operations.
+Discovery (`--discover`) adds hundreds more APIs as data-model stubs.
 
 ## Quick start
 
@@ -19,14 +26,14 @@ python3 -m venv .venv
 . .venv/bin/activate
 pip install -e '.[dev]'
 
-# Build bundled UK gov catalogue and Taxi output
+# Build the curated UK gov catalogue → callable Taxi
 orbital-api-taxonomy build --vertical gov-uk --out build/gov-uk
 
 # High-recall discovery across api.gov.uk, data.gov.uk and APIs.guru
 orbital-api-taxonomy build --vertical gov-uk --discover --max-records 500 --out build/gov-uk-discovered
 
-# Copy generated Taxi into the local Orbital workspace
-scripts/sync-orbital-workspace.sh
+# Copy the curated callable Taxi into the local Orbital workspace
+scripts/sync-orbital-workspace.sh build/gov-uk/taxi
 
 # Run tests
 pytest
@@ -47,16 +54,43 @@ The generated Taxi project lives in `orbital-dev/workspace/`:
 
 - `taxi.conf` points Orbital at `workspace/src/`
 - `workspace.conf` registers the local project with Orbital
-- `workspace/src/*.taxi` is refreshed from `build/gov-uk-discovered/taxi/`
+- `workspace/src/*.taxi` is refreshed by `scripts/sync-orbital-workspace.sh`
+  (defaults to the curated callable build, `build/gov-uk/taxi/`)
 
-Current discovery snapshot:
+Orbital watches the workspace and recompiles within a few seconds of a sync.
 
-- 647 catalogue records total
-- 242 from `api.gov.uk`
-- 361 from `data.gov.uk`
-- 35 from APIs.guru
-- 9 curated seed records
-- 1,337 field-to-taxonomy mappings generated from seed/openapi/sample fields
+## Querying live gov APIs
+
+Once the curated Taxi is synced, Orbital can run live queries. A query supplies
+known facts (`given`) and asks for a taxonomy type (`find`); Orbital works out
+which API(s) to call.
+
+```bash
+# street crime near a coordinate — one live call to data.police.uk
+scripts/demo-query.sh examples/orbital/street-crime.taxi
+
+# crime near a TfL stop — Orbital chains TfL -> Police via shared Latitude/Longitude
+scripts/demo-query.sh examples/orbital/crime-near-tfl-stop.taxi
+```
+
+Or hit the API directly:
+
+```bash
+curl -s -X POST http://localhost:9022/api/taxiql -H 'Content-Type: text/plain' \
+  --data 'given { lat : uk.gov.Latitude = 51.5072, lng : uk.gov.Longitude = -0.1276 }
+          find { uk.gov.apis.police_uk.StreetCrime[] }'
+```
+
+7 of the 9 curated APIs are open and queryable live with no credentials (Police.uk,
+TfL, GOV.UK Content, Environment Agency, ONS, Parliament). Companies House and NHS
+Service Search generate correct callable Taxi but need an API key configured in
+Orbital. See `examples/orbital/` for runnable queries.
+
+Discovery snapshot (`--discover`, varies as registries change):
+
+- ~640 catalogue records across `api.gov.uk`, `data.gov.uk` and APIs.guru
+- 9 curated seed APIs, exposed as fully callable `@HttpOperation` services
+- ~1,300 field-to-taxonomy mappings
 
 ## Current MVP scope
 

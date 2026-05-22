@@ -1,4 +1,12 @@
 vertical: gov-uk
+# Curated UK government / civic APIs.
+#
+# Each endpoint is fully specified so the build can generate *callable* Taxi:
+#   - params:          path/query inputs, typed against the uk.gov taxonomy
+#   - response_fields: response JSON mapped (via jsonPath) onto the same taxonomy
+#   - model_name:      the generated Taxi response model
+#   - collection:      true when the operation returns multiple records
+#   - items_path:      jsonPath to the array when the payload is wrapped
 records:
   - id: companies-house
     name: Companies House API
@@ -11,12 +19,19 @@ records:
     tags: [companies, organisations, filings]
     source: curated
     endpoints:
-      - path: /company/{company_number}
-        description: Company profile
-        sample_fields: [company_name, company_number, company_status, sic_codes, registered_office_address.address_line_1, registered_office_address.postal_code]
-      - path: /company/{company_number}/filing-history
-        description: Filing history
-        sample_fields: [company_number, category, date, description, type]
+      - path: /company/{companyNumber}
+        method: GET
+        description: Registered company profile
+        model_name: CompanyProfile
+        params:
+          - {name: companyNumber, taxi_type: CompanyRegistrationNumber, location: path, required: true}
+        response_fields:
+          - {name: companyName, taxi_type: CompanyName, json_path: "$.company_name"}
+          - {name: companyNumber, taxi_type: CompanyRegistrationNumber, json_path: "$.company_number"}
+          - {name: companyStatus, taxi_type: CompanyStatus, json_path: "$.company_status"}
+          - {name: addressLine1, taxi_type: AddressLine, json_path: "$.registered_office_address.address_line_1"}
+          - {name: postcode, taxi_type: Postcode, json_path: "$.registered_office_address.postal_code"}
+
   - id: tfl
     name: Transport for London Unified API
     vertical: gov-uk
@@ -29,12 +44,26 @@ records:
     tags: [transport, london, mobility]
     source: curated
     endpoints:
-      - path: /StopPoint/{id}
-        description: Stop/station details
-        sample_fields: [naptanId, commonName, lat, lon, stopType]
-      - path: /Line/{ids}/Disruption
-        description: Line disruptions
-        sample_fields: [lineId, description, reason, severity]
+      - path: /StopPoint/{stopId}
+        method: GET
+        description: Stop or station details
+        model_name: StopPoint
+        params:
+          - {name: stopId, taxi_type: TransportStopId, location: path, required: true}
+        response_fields:
+          - {name: naptanId, taxi_type: TransportStopId, json_path: "$.naptanId"}
+          - {name: latitude, taxi_type: Latitude, json_path: "$.lat"}
+          - {name: longitude, taxi_type: Longitude, json_path: "$.lon"}
+      - path: /Line/{lineId}/Disruption
+        method: GET
+        description: Disruptions affecting a transport line
+        model_name: LineDisruption
+        collection: true
+        params:
+          - {name: lineId, taxi_type: TransportRouteId, location: path, required: true}
+        response_fields:
+          - {name: description, taxi_type: DisruptionDescription, json_path: "$.description"}
+
   - id: govuk-content
     name: GOV.UK Content API
     vertical: gov-uk
@@ -46,9 +75,17 @@ records:
     tags: [content, publications, guidance]
     source: curated
     endpoints:
-      - path: /content/{base_path}
-        description: GOV.UK content item
-        sample_fields: [title, description, public_updated_at, document_type, details.body]
+      - path: /content/{contentPath}
+        method: GET
+        description: A single GOV.UK content item
+        model_name: GovukContent
+        params:
+          - {name: contentPath, taxi_type: ContentPath, location: path, required: true}
+        response_fields:
+          - {name: title, taxi_type: PublicationTitle, json_path: "$.title"}
+          - {name: publicationDate, taxi_type: PublicationDate, json_path: "$.public_updated_at"}
+          - {name: body, taxi_type: ContentBody, json_path: "$.details.body"}
+
   - id: police-uk
     name: Police.uk API
     vertical: gov-uk
@@ -61,8 +98,21 @@ records:
     source: curated
     endpoints:
       - path: /crimes-street/all-crime
-        description: Street-level crime data
-        sample_fields: [category, location.latitude, location.longitude, location.street.name, month]
+        method: GET
+        description: Street-level crime near a location
+        model_name: StreetCrime
+        collection: true
+        params:
+          - {name: lat, taxi_type: Latitude, location: query, required: true}
+          - {name: lng, taxi_type: Longitude, location: query, required: true}
+          - {name: date, taxi_type: CrimeMonth, location: query, required: false}
+        response_fields:
+          - {name: category, taxi_type: CrimeCategory, json_path: "$.category"}
+          - {name: latitude, taxi_type: Latitude, json_path: "$.location.latitude"}
+          - {name: longitude, taxi_type: Longitude, json_path: "$.location.longitude"}
+          - {name: streetName, taxi_type: StreetName, json_path: "$.location.street.name"}
+          - {name: month, taxi_type: CrimeMonth, json_path: "$.month"}
+
   - id: environment-agency-flood
     name: Environment Agency Flood Monitoring API
     vertical: gov-uk
@@ -74,9 +124,19 @@ records:
     tags: [environment, flood, observations]
     source: curated
     endpoints:
-      - path: /id/stations/{station}/readings
-        description: Flood monitoring readings
-        sample_fields: [dateTime, value, measure, stationReference, parameter]
+      - path: /id/stations/{stationId}/readings
+        method: GET
+        description: Recent readings from a flood-monitoring station
+        model_name: FloodReading
+        collection: true
+        items_path: "$.items"
+        params:
+          - {name: stationId, taxi_type: MonitoringStationId, location: path, required: true}
+        response_fields:
+          - {name: observationTime, taxi_type: ObservationTime, json_path: "$.dateTime"}
+          - {name: measure, taxi_type: MeasureName, json_path: "$.measure"}
+          - {name: value, taxi_type: ObservationValue, json_path: "$.value"}
+
   - id: open-gazette
     name: The Gazette API
     vertical: gov-uk
@@ -89,10 +149,20 @@ records:
     source: curated
     endpoints:
       - path: /all-notices/notice/data.json
-        description: Public notices search
-        sample_fields: [title, noticeCode, publicationDate, companyNumber, edition]
+        method: GET
+        description: Search public notices
+        model_name: GazetteNotice
+        collection: true
+        items_path: "$.entry"
+        params:
+          - {name: text, taxi_type: SearchQuery, location: query, required: false}
+        response_fields:
+          - {name: title, taxi_type: PublicationTitle, json_path: "$.title"}
+          - {name: noticeCode, taxi_type: NoticeCode, json_path: "$.noticeCode"}
+          - {name: publicationDate, taxi_type: PublicationDate, json_path: "$.publicationDate"}
+
   - id: parliament
-    name: UK Parliament APIs
+    name: UK Parliament Members API
     vertical: gov-uk
     provider: UK Parliament
     base_url: https://members-api.parliament.uk
@@ -102,12 +172,26 @@ records:
     tags: [parliament, members, constituencies]
     source: curated
     endpoints:
-      - path: /api/Members/{id}
-        description: Member details
-        sample_fields: [id, nameDisplayAs, latestHouseMembership.membershipFrom, latestHouseMembership.membershipFromId]
+      - path: /api/Members/{memberId}
+        method: GET
+        description: Details for a Member of Parliament
+        model_name: ParliamentMember
+        params:
+          - {name: memberId, taxi_type: ParliamentMemberId, location: path, required: true}
+        response_fields:
+          - {name: memberId, taxi_type: ParliamentMemberId, json_path: "$.value.id"}
+          - {name: constituency, taxi_type: ConstituencyName, json_path: "$.value.latestHouseMembership.membershipFrom"}
       - path: /api/Location/Constituency/Search
-        description: Constituency search
-        sample_fields: [constituencyName, memberId, postcode]
+        method: GET
+        description: Search parliamentary constituencies
+        model_name: Constituency
+        collection: true
+        items_path: "$.items"
+        params:
+          - {name: searchText, taxi_type: SearchQuery, location: query, required: true}
+        response_fields:
+          - {name: constituencyName, taxi_type: ConstituencyName, json_path: "$.value.name"}
+
   - id: ons
     name: Office for National Statistics API
     vertical: gov-uk
@@ -119,20 +203,37 @@ records:
     tags: [statistics, datasets, observations]
     source: curated
     endpoints:
-      - path: /datasets/{dataset_id}/editions/{edition}/versions/{version}/observations
-        description: Dataset observations
-        sample_fields: [observation, dimensions, time, value]
+      - path: /datasets/{datasetId}
+        method: GET
+        description: Metadata for a statistical dataset
+        model_name: OnsDataset
+        params:
+          - {name: datasetId, taxi_type: DatasetId, location: path, required: true}
+        response_fields:
+          - {name: datasetId, taxi_type: DatasetId, json_path: "$.id"}
+          - {name: title, taxi_type: PublicationTitle, json_path: "$.title"}
+
   - id: nhs-service-search
-    name: NHS Service Search / public APIs
+    name: NHS Service Search
     vertical: gov-uk
     provider: NHS England
-    base_url: https://api.nhs.uk
+    base_url: https://api.nhs.uk/service-search
     docs_url: https://developer.api.nhs.uk/
     auth: api-key
     licence: NHS API terms
     tags: [health, services, organisations]
     source: curated
     endpoints:
-      - path: /service-search/search
-        description: NHS service search
-        sample_fields: [organisationName, organisationCode, postcode, addressLine1, latitude, longitude]
+      - path: /search
+        method: POST
+        description: Search NHS organisations and services (requires api-key)
+        model_name: NhsService
+        collection: true
+        items_path: "$.value"
+        params:
+          - {name: search, taxi_type: SearchQuery, location: query, required: true}
+        response_fields:
+          - {name: organisationName, taxi_type: CompanyName, json_path: "$.OrganisationName"}
+          - {name: postcode, taxi_type: Postcode, json_path: "$.Postcode"}
+          - {name: latitude, taxi_type: Latitude, json_path: "$.Latitude"}
+          - {name: longitude, taxi_type: Longitude, json_path: "$.Longitude"}

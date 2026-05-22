@@ -9,6 +9,15 @@
 - [x] Orbital-style example queries
 - [x] Unit tests and smoke build
 
+## MVP 0.2 — callable Orbital integration
+
+- [x] Generate fully annotated Taxi `@HttpOperation` services
+- [x] Typed path/query parameters (`@PathVariable` / `@QueryVariable`)
+- [x] `jsonPath`-bound response models, including wrapped collections
+- [x] Orbital docker-compose demo wired to the generated workspace
+- [x] Live queries verified against real gov APIs (Police.uk, TfL, EA, ONS, Parliament, GOV.UK)
+- [x] Cross-service chaining via the shared taxonomy
+
 ## Next
 
 1. **Live discovery adapters**
@@ -28,10 +37,9 @@
    - Keep deterministic tests for accepted mappings
    - Add negative concept examples to avoid false positives
 
-4. **Orbital integration**
-   - Generate fully annotated Taxi HTTP operations
-   - Add an Orbital docker-compose demo
-   - Example semantic queries by vertical
+4. **Promote discovered APIs to callable**
+   - Derive params + response fields from fetched OpenAPI specs
+   - Configure auth (API keys / OAuth) in Orbital for keyed APIs
 
 5. **Additional verticals**
    - Healthcare: FHIR, NHS dm+d, ICD-10/SNOMED bridge

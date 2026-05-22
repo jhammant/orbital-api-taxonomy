@@ -61,8 +61,37 @@ class TaxonomyMapper:
         )
 
     def map_api(self, api: ApiRecord) -> list[FieldMapping]:
+        """Map an API's response fields onto the taxonomy.
+
+        Curated endpoints carry explicit, hand-reviewed ``response_fields`` — these
+        are trusted as exact mappings. Discovered endpoints only have raw
+        ``sample_fields``, which are matched fuzzily against concept aliases.
+        """
+        concepts = self.taxonomy.concept_by_type()
         mappings: list[FieldMapping] = []
         for endpoint in api.endpoints:
+            if endpoint.response_fields:
+                for response_field in endpoint.response_fields:
+                    concept = concepts.get(response_field.taxi_type)
+                    if concept is None:
+                        raise ValueError(
+                            f"{api.id}{endpoint.path}: response field "
+                            f"'{response_field.name}' references unknown taxonomy type "
+                            f"'{response_field.taxi_type}'"
+                        )
+                    mappings.append(
+                        FieldMapping(
+                            api_id=api.id,
+                            endpoint_path=endpoint.path,
+                            source_field=response_field.json_path,
+                            normalised_field=normalise(response_field.name),
+                            taxi_type=concept.taxi_type,
+                            concept_name=concept.name,
+                            confidence=1.0,
+                            reason="curated mapping",
+                        )
+                    )
+                continue
             for field in endpoint.sample_fields:
                 mapping = self.map_field(field)
                 if mapping:

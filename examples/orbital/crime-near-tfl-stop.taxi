@@ -1,0 +1,12 @@
+// Cross-service query — the reason this project exists.
+//
+// Given only a TfL stop id, Orbital:
+//   1. calls TfL StopPoint to resolve the stop's Latitude / Longitude
+//   2. feeds those coordinates into Police.uk to fetch street crime
+//
+// Orbital is never told TfL and Police.uk are connected. It discovers the path
+// because both APIs are mapped onto the same uk.gov taxonomy.
+//
+// 940GZZLUOXC = Oxford Circus Underground Station.
+given { stop : uk.gov.TransportStopId = "940GZZLUOXC" }
+find { uk.gov.apis.police_uk.StreetCrime[] }

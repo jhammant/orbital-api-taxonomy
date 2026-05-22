@@ -7,12 +7,41 @@ import yaml
 from pydantic import BaseModel, Field, HttpUrl
 
 
+class Param(BaseModel):
+    """A path or query parameter, typed against the vertical taxonomy."""
+
+    name: str
+    taxi_type: str
+    location: str = "query"  # "path" | "query"
+    required: bool = False
+    description: str | None = None
+
+
+class ResponseField(BaseModel):
+    """An explicit, curated mapping of a response field to a taxonomy concept."""
+
+    name: str  # Taxi-safe field name
+    taxi_type: str
+    json_path: str  # accessor into the response JSON, e.g. "$.location.latitude"
+    description: str | None = None
+
+
 class Endpoint(BaseModel):
     path: str
     method: str = "GET"
     description: str | None = None
+    model_name: str | None = None  # name of the generated response model
+    collection: bool = False  # operation returns multiple records
+    items_path: str | None = None  # jsonPath to the array when the response is wrapped
+    params: list[Param] = Field(default_factory=list)
+    response_fields: list[ResponseField] = Field(default_factory=list)
     response_schema: dict[str, Any] | None = None
     sample_fields: list[str] = Field(default_factory=list)
+
+    @property
+    def callable(self) -> bool:
+        """True when this endpoint has enough metadata to generate a Taxi HTTP operation."""
+        return bool(self.params or self.response_fields)
 
 
 class ApiRecord(BaseModel):

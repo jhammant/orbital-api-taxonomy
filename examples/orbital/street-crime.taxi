@@ -1,0 +1,5 @@
+// Street-level crime near a coordinate (central London).
+// Orbital calls https://data.police.uk/api/crimes-street/all-crime and maps the
+// response onto the uk.gov taxonomy (CrimeCategory, Latitude, Longitude, ...).
+given { lat : uk.gov.Latitude = 51.5072, lng : uk.gov.Longitude = -0.1276 }
+find { uk.gov.apis.police_uk.StreetCrime[] }

@@ -1,0 +1,5 @@
+// Recent readings from an Environment Agency flood-monitoring station.
+// The API wraps its results in an { "items": [...] } envelope; the generated
+// FloodReadingList model exposes that inner collection.
+given { station : uk.gov.MonitoringStationId = "1029TH" }
+find { uk.gov.apis.environment_agency_flood.FloodReadingList }
