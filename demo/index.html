@@ -552,6 +552,280 @@ a.media-t:hover{color:var(--accent)}
 
 /* lift floating toasts above the docked console bar */
 .toasts{bottom:64px}
+
+/* ============================================================
+   GUIDED TOUR  (presenter-driven overlay — purely additive)
+   A dimmed full-page backdrop with a bright cut-out/ring around
+   the spotlighted element, plus an anchored caption card.
+   Distinctive but professional; reuses the light/dark palette.
+   ============================================================ */
+.tour-cta{                /* the "▶ Guided tour" button in the topbar */
+  background:linear-gradient(180deg,#4B4EE7,#3538CD); border-color:var(--accent-deep); color:#fff;
+}
+.tour-cta:hover{background:linear-gradient(180deg,#3F42D8,#2A2C9E); border-color:var(--accent-deep); color:#fff}
+.tour-cta .tri{font-size:11px; line-height:1; transform:translateY(.5px)}
+
+/* first-load "take the tour" pill */
+.tour-pill{
+  position:fixed; left:50%; transform:translateX(-50%) translateY(0); top:64px; z-index:75;
+  display:flex; align-items:center; gap:11px; background:var(--ink); color:#fff;
+  border-radius:999px; padding:9px 10px 9px 16px; box-shadow:var(--shadow-lg);
+  font-size:13px; font-weight:600; letter-spacing:-0.01em; animation:tourPillIn .4s cubic-bezier(.4,0,.2,1);
+}
+.tour-pill .tp-spark{width:7px;height:7px;border-radius:50%;background:var(--con-ty);box-shadow:0 0 0 3px rgba(125,211,168,.22);flex:none}
+.tour-pill button{font-family:inherit; border:0; cursor:pointer}
+.tour-pill .tp-go{background:#fff; color:var(--accent-deep); font-weight:700; font-size:12.5px; border-radius:999px; padding:6px 13px; display:inline-flex; align-items:center; gap:6px; transition:.12s}
+.tour-pill .tp-go:hover{background:var(--accent-weak)}
+.tour-pill .tp-go .tri{font-size:10px}
+.tour-pill .tp-x{background:rgba(255,255,255,.08); color:#fff; width:26px; height:26px; border-radius:50%; display:grid; place-items:center; transition:.12s}
+.tour-pill .tp-x:hover{background:rgba(255,255,255,.18)}
+.tour-pill .tp-x svg{width:13px;height:13px}
+@keyframes tourPillIn{from{opacity:0; transform:translateX(-50%) translateY(-8px)} to{opacity:1; transform:translateX(-50%) translateY(0)}}
+
+/* the overlay root — only present while the tour runs */
+.tour-overlay{position:fixed; inset:0; z-index:90; pointer-events:none}
+.tour-overlay.active{pointer-events:auto}
+
+/* dimming backdrop: a transparent box whose huge box-shadow dims the rest,
+   leaving the target rectangle as a clear "spotlight" cut-out */
+.tour-backdrop{
+  position:fixed; left:0; top:0; width:0; height:0; border-radius:14px;
+  box-shadow:0 0 0 9999px rgba(11,15,30,.62);
+  transition:left .42s cubic-bezier(.4,0,.2,1), top .42s cubic-bezier(.4,0,.2,1),
+             width .42s cubic-bezier(.4,0,.2,1), height .42s cubic-bezier(.4,0,.2,1),
+             border-radius .42s, box-shadow .3s;
+  pointer-events:none;
+}
+.tour-backdrop.full{                /* centered steps: dim the whole screen, no cut-out */
+  left:50%; top:50%; width:0; height:0; border-radius:0;
+}
+/* bright ring drawn over the cut-out edge */
+.tour-ring{
+  position:fixed; left:0; top:0; width:0; height:0; border-radius:14px; pointer-events:none;
+  border:2px solid var(--accent); box-shadow:0 0 0 4px rgba(53,56,205,.28), 0 0 22px 2px rgba(75,78,231,.35);
+  transition:left .42s cubic-bezier(.4,0,.2,1), top .42s cubic-bezier(.4,0,.2,1),
+             width .42s cubic-bezier(.4,0,.2,1), height .42s cubic-bezier(.4,0,.2,1), opacity .25s;
+  opacity:0;
+}
+.tour-ring.show{opacity:1}
+.tour-ring::after{               /* soft animated pulse */
+  content:""; position:absolute; inset:-2px; border-radius:inherit; border:2px solid rgba(75,78,231,.45);
+  animation:tourPulse 1.8s ease-out infinite;
+}
+@keyframes tourPulse{0%{transform:scale(1); opacity:.7} 100%{transform:scale(1.08); opacity:0}}
+
+/* caption card */
+.tour-card{
+  position:fixed; z-index:92; width:min(380px,calc(100vw - 32px)); max-width:380px;
+  background:var(--surface); border:1px solid var(--line); border-radius:var(--r-lg);
+  box-shadow:var(--shadow-lg); padding:0; pointer-events:auto; opacity:0; transform:translateY(6px);
+  transition:left .42s cubic-bezier(.4,0,.2,1), top .42s cubic-bezier(.4,0,.2,1), opacity .28s, transform .28s;
+}
+.tour-card.show{opacity:1; transform:translateY(0)}
+.tour-card.center{                /* centered hero captions are a touch wider + text-centred */
+  width:min(480px,calc(100vw - 32px)); max-width:480px; text-align:center;
+  transform:translate(-50%,calc(-50% + 6px));     /* hidden offset */
+}
+.tour-card.center.show{transform:translate(-50%,-50%)}
+.tour-card-top{display:flex; align-items:center; gap:9px; padding:15px 18px 0}
+.tour-card.center .tour-card-top{justify-content:center}
+.tour-spark{width:8px;height:8px;border-radius:50%;background:var(--accent);box-shadow:0 0 0 3px var(--accent-weak);flex:none}
+.tour-eyebrow{font-family:var(--mono); font-size:10px; font-weight:600; letter-spacing:.14em; text-transform:uppercase; color:var(--accent)}
+.tour-card-body{padding:8px 18px 4px}
+.tour-card h4{margin:0 0 6px; font-size:16.5px; font-weight:700; letter-spacing:-0.02em; color:var(--ink); line-height:1.3}
+.tour-card.center h4{font-size:20px; margin-bottom:9px}
+.tour-card p{margin:0; font-size:13.5px; line-height:1.55; color:var(--ink-2); letter-spacing:-0.005em}
+.tour-card.center p{font-size:14.5px; max-width:420px; margin:0 auto}
+.tour-card-foot{display:flex; align-items:center; gap:10px; padding:15px 18px 16px; margin-top:12px; border-top:1px solid var(--line-2)}
+.tour-card.center .tour-card-foot{justify-content:center; border-top:0; padding-top:6px; margin-top:16px; flex-wrap:wrap; row-gap:12px}
+.tour-card.center .tour-count{order:-1; width:100%; text-align:center}
+.tour-card.center .tour-dots{order:-1; width:100%; justify-content:center; margin:0}
+.tour-count{font-family:var(--mono); font-size:11px; color:var(--ink-4); letter-spacing:.02em}
+.tour-dots{display:flex; gap:5px; margin-left:2px}
+.tour-dots i{width:6px;height:6px;border-radius:50%;background:var(--line); transition:.2s}
+.tour-dots i.on{background:var(--accent); transform:scale(1.15)}
+.tour-foot-sp{flex:1}
+.tour-btn{display:inline-flex; align-items:center; gap:6px; border:1px solid var(--line); background:#fff; color:var(--ink-2); font-size:12.5px; font-weight:600; letter-spacing:-0.01em; padding:7px 13px; border-radius:var(--r-sm); transition:.12s}
+.tour-btn:hover{border-color:#D0D5DD; color:var(--ink); background:#fcfcfd}
+.tour-btn.primary{background:var(--accent); border-color:var(--accent); color:#fff}
+.tour-btn.primary:hover{background:var(--accent-deep); border-color:var(--accent-deep); color:#fff}
+.tour-btn.ghost{border-color:transparent; background:none; color:var(--ink-4); padding:7px 8px}
+.tour-btn.ghost:hover{color:var(--ink-2); background:var(--line-2)}
+.tour-btn svg{width:14px;height:14px}
+.tour-skip{position:absolute; top:13px; right:14px; background:none; border:0; color:var(--ink-4); width:26px; height:26px; border-radius:6px; display:grid; place-items:center; cursor:pointer; transition:.12s}
+.tour-skip:hover{color:var(--ink-2); background:var(--line-2)}
+.tour-skip svg{width:15px;height:15px}
+@media (max-width:560px){
+  .tour-card,.tour-card.center{width:calc(100vw - 24px); left:12px !important; right:12px}
+}
+@media print{ .tour-overlay,.tour-pill,.tour-cta{display:none !important} }
+
+/* ============================================================
+   BRAIN — the explorable multi-source graph view.
+   Orbital/Taxi as the ROUTER that composes many typed sources.
+   Light SaaS aesthetic; premium SVG graph; vanilla JS (no libs).
+   ============================================================ */
+.brain-head{display:flex;align-items:flex-end;justify-content:space-between;gap:18px;flex-wrap:wrap;margin-bottom:18px}
+.brain-search{position:relative;flex:1;min-width:280px;max-width:520px}
+.brain-search svg{position:absolute;left:13px;top:50%;transform:translateY(-50%);width:16px;height:16px;color:var(--ink-4)}
+.brain-search input{width:100%;border:1px solid var(--line);background:#fff;border-radius:var(--r-sm);padding:10px 12px 10px 38px;font-family:inherit;font-size:14px;letter-spacing:-0.01em;color:var(--ink);box-shadow:var(--shadow-sm);transition:.14s}
+.brain-search input::placeholder{color:var(--ink-4)}
+.brain-search input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-weak)}
+.brain-search .bs-go{position:absolute;right:6px;top:50%;transform:translateY(-50%);padding:6px 11px;font-size:12.5px}
+
+/* segmented mode control [ Re-centre · Expand · Inspect ] */
+.brain-modes{display:inline-flex;align-items:center;background:var(--canvas);border:1px solid var(--line);border-radius:var(--r-sm);padding:3px;gap:2px;box-shadow:var(--shadow-sm)}
+.brain-mode{display:inline-flex;align-items:center;gap:7px;border:0;background:none;color:var(--ink-3);font-size:12.5px;font-weight:600;letter-spacing:-0.01em;padding:6px 12px;border-radius:6px;transition:.12s;white-space:nowrap}
+.brain-mode svg{width:14px;height:14px;color:var(--ink-4);transition:.12s}
+.brain-mode:hover{color:var(--ink-2)}
+.brain-mode.active{background:#fff;color:var(--accent-deep);box-shadow:var(--shadow-sm)}
+.brain-mode.active svg{color:var(--accent)}
+
+/* the framed graph stage */
+.brain-stage-wrap{position:relative;background:radial-gradient(1200px 520px at 50% 42%,#fcfcff 0%,var(--surface) 72%);border:1px solid var(--line);border-radius:var(--r-lg);overflow:hidden;box-shadow:var(--shadow)}
+.brain-stage-top{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:13px 18px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+.brain-stage-top .bt-l{display:flex;align-items:center;gap:10px;min-width:0}
+.brain-stage-top h3{margin:0;font-size:14px;font-weight:700;letter-spacing:-0.02em;display:flex;align-items:center;gap:9px}
+.brain-stage-top h3 svg{width:16px;height:16px;color:var(--accent);flex:none}
+.brain-router-badge{display:inline-flex;align-items:center;gap:7px;font-family:var(--mono);font-size:10.5px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--accent-deep);background:var(--accent-weak);border:1px solid var(--accent-line);padding:3px 10px;border-radius:20px}
+.brain-router-badge .spark{width:7px;height:7px;border-radius:50%;background:var(--accent);box-shadow:0 0 0 3px rgba(53,56,205,.14);flex:none}
+.brain-cap{font-family:var(--mono);font-size:11px;color:var(--ink-4);letter-spacing:.01em}
+.brain-cap b{color:var(--accent-deep);font-weight:600}
+
+/* the graph + side panel live side by side */
+.brain-body{display:flex;min-height:560px;position:relative}
+.brain-canvas{flex:1;min-width:0;position:relative}
+.brain-svg{display:block;width:100%;height:auto;touch-action:none;cursor:default}
+.brain-svg text{user-select:none}
+
+/* curved routing edges */
+.b-edge{fill:none;stroke:#D0D5DD;stroke-width:1.4;transition:stroke .15s,stroke-width .15s,opacity .15s}
+.b-edge.route{stroke:var(--accent-line);stroke-width:1.6}
+.b-edge.entity{stroke:#E4E7EC;stroke-width:1.3}
+.b-edge.dim{opacity:.45}
+.b-edge.hot{stroke:var(--accent);stroke-width:2}
+/* the invented hop — permanently glowing */
+.b-edge.invented{stroke:var(--accent);stroke-width:2.4;filter:drop-shadow(0 0 5px rgba(75,78,231,.55));stroke-dasharray:none}
+.b-edge.invented-flow{stroke:#8E94F0;stroke-width:2.4;stroke-dasharray:5 7;opacity:.9;animation:bFlow 1.1s linear infinite}
+@keyframes bFlow{to{stroke-dashoffset:-24}}
+
+/* edge via-label (shown on hover/selected; invented always shown) */
+.b-edge-label{font-family:var(--mono);font-size:10px;fill:var(--ink-3);opacity:0;transition:opacity .15s;pointer-events:none}
+.b-edge-label.show{opacity:1}
+.b-edge-label.inv{fill:var(--accent-deep);font-weight:600;opacity:1}
+.b-edge-label-bg{fill:#fff;opacity:0;transition:opacity .15s;pointer-events:none}
+.b-edge-label-bg.show{opacity:.92}
+.b-edge-label-bg.inv{opacity:.92}
+
+/* nodes */
+.b-node{cursor:pointer}
+.b-node .hit{fill:transparent}
+.b-node .ndot,.b-node .nrect{transition:transform .12s,filter .12s}
+.b-node:hover .ndot,.b-node:hover .nrect{filter:brightness(1.04)}
+.b-node.sel .selring{opacity:1}
+.b-node .selring{opacity:0;transition:opacity .15s}
+.b-node-label{font-family:var(--sans);font-weight:500;letter-spacing:-0.01em;fill:var(--ink-2);pointer-events:none}
+.b-node-sub{font-family:var(--mono);fill:var(--ink-4);pointer-events:none}
+.b-node.subject .b-node-label{fill:var(--ink);font-weight:700}
+.b-badge-inv{font-family:var(--mono);font-size:8.5px;font-weight:600;letter-spacing:.06em;fill:#fff}
+
+/* legend */
+.brain-legend{display:flex;gap:16px;padding:11px 18px;border-top:1px solid var(--line);flex-wrap:wrap;background:var(--canvas);align-items:center}
+.brain-legend .lg{display:flex;align-items:center;gap:7px;font-size:11.5px;color:var(--ink-2)}
+.brain-legend .lg .sw{width:12px;height:12px;border-radius:50%;border:2px solid #fff;box-shadow:0 0 0 1px var(--line);flex:none}
+.brain-legend .lg .sw.sq{border-radius:4px}
+.brain-legend .lg .ln{width:20px;height:0;border-top:2px solid var(--accent);display:inline-block;flex:none}
+.brain-legend .lg .ln.glow{box-shadow:0 0 5px rgba(75,78,231,.6);border-top-color:var(--accent)}
+.brain-legend .route-note{margin-left:auto;font-family:var(--mono);font-size:10.5px;color:var(--accent-deep);display:flex;align-items:center;gap:7px;letter-spacing:.01em}
+.brain-legend .route-note .b{display:inline-flex;align-items:center;gap:6px;background:var(--accent-weak);border:1px solid var(--accent-line);border-radius:20px;padding:2px 9px}
+@media (max-width:900px){ .brain-legend .route-note{margin-left:0;width:100%} }
+
+/* floating tooltip */
+.brain-tip{position:fixed;z-index:80;max-width:260px;background:var(--ink);color:#fff;border-radius:var(--r-sm);padding:9px 11px;box-shadow:var(--shadow-lg);font-size:12px;line-height:1.45;pointer-events:none;opacity:0;transform:translateY(4px);transition:opacity .12s,transform .12s}
+.brain-tip.show{opacity:1;transform:translateY(0)}
+.brain-tip .tt-t{font-weight:700;font-size:12.5px;letter-spacing:-0.01em;margin-bottom:3px;display:flex;align-items:center;gap:7px}
+.brain-tip .tt-k{display:inline-block;width:7px;height:7px;border-radius:50%;flex:none}
+.brain-tip .tt-k.sq{border-radius:2px}
+.brain-tip .tt-r{font-family:var(--mono);font-size:10.5px;color:#C7CCF0;letter-spacing:.01em}
+.brain-tip .tt-r b{color:#E6E8FA;font-weight:600}
+.brain-tip .tt-hint{margin-top:5px;font-family:var(--mono);font-size:9.5px;color:#8E94B8;letter-spacing:.03em}
+
+/* right-hand inspect side panel */
+.brain-panel{width:0;flex:none;border-left:1px solid var(--line);background:#fff;overflow:hidden;transition:width .28s cubic-bezier(.4,0,.2,1)}
+.brain-panel.open{width:380px}
+.bp-inner{width:380px;height:100%;max-height:620px;overflow-y:auto;display:flex;flex-direction:column}
+.bp-head{display:flex;align-items:flex-start;gap:11px;padding:16px 18px 14px;border-bottom:1px solid var(--line);position:sticky;top:0;background:#fff;z-index:2}
+.bp-ava{width:36px;height:36px;border-radius:9px;flex:none;display:grid;place-items:center;font-family:var(--mono);font-size:12px;font-weight:700;color:#fff}
+.bp-ava.person{border-radius:50%;background:linear-gradient(135deg,#9B8AFB,#7A5AF8)}
+.bp-ava.source{background:var(--accent-weak);color:var(--accent-deep);border:1px solid var(--accent-line)}
+.bp-ava.failed{background:linear-gradient(135deg,#F97066,#D92D20)}
+.bp-ava.slate{background:linear-gradient(135deg,#98A2B3,#475467)}
+.bp-htext{min-width:0;flex:1}
+.bp-kind{font-family:var(--mono);font-size:9.5px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--accent)}
+.bp-name{font-size:15px;font-weight:700;letter-spacing:-0.02em;margin-top:2px;line-height:1.25;word-break:break-word}
+.bp-x{flex:none;border:0;background:none;width:28px;height:28px;border-radius:7px;display:grid;place-items:center;color:var(--ink-4);transition:.12s}
+.bp-x:hover{background:var(--line-2);color:var(--ink-2)}
+.bp-x svg{width:16px;height:16px}
+.bp-body{padding:15px 18px 18px;display:flex;flex-direction:column;gap:14px}
+.bp-block .bp-bt{font-family:var(--mono);font-size:9.5px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-4);margin-bottom:8px}
+.bp-def{display:grid;grid-template-columns:auto 1fr;gap:7px 14px;align-items:baseline}
+.bp-def dt{font-family:var(--mono);font-size:10.5px;color:var(--ink-4);text-transform:uppercase;letter-spacing:.05em;white-space:nowrap}
+.bp-def dd{margin:0;font-size:12.5px;color:var(--ink);text-align:right;font-family:var(--mono);letter-spacing:-0.01em;word-break:break-word}
+.bp-summary{font-size:13px;line-height:1.55;color:var(--ink-2)}
+.bp-summary b{color:var(--ink);font-weight:600}
+.bp-chips{display:flex;flex-wrap:wrap;gap:6px}
+.bp-chip{font-family:var(--mono);font-size:10.5px;color:var(--ink-3);background:var(--canvas);border:1px solid var(--line);padding:2px 8px;border-radius:6px}
+.bp-chip.red{color:#912018;background:var(--red-bg);border-color:var(--red-line)}
+.bp-chip.acc{color:var(--accent-deep);background:var(--accent-weak);border-color:var(--accent-line)}
+/* the real .taxi for a source node — reuse dark code aesthetic */
+.bp-taxi{border:1px solid var(--line);border-radius:var(--r-sm);overflow:hidden;background:#0B0F1E}
+.bp-taxi-top{display:flex;align-items:center;justify-content:space-between;padding:7px 12px;background:#0E1326}
+.bp-taxi-top .lbl{color:#8E94F0}
+.bp-taxi-top .dots{display:flex;gap:5px}.bp-taxi-top .dots i{width:7px;height:7px;border-radius:50%;background:#2A2F45}
+.bp-taxi pre{margin:0;padding:11px 13px;font-family:var(--mono);font-size:11px;line-height:1.6;color:#C7CCF0;white-space:pre;tab-size:2;max-height:300px;overflow:auto}
+.bp-actions{display:flex;gap:8px;flex-wrap:wrap}
+.bp-via{display:flex;align-items:center;gap:5px;flex-wrap:wrap;font-family:var(--mono);font-size:11px;color:var(--ink-3)}
+.bp-via .ar{color:var(--accent);font-weight:600}
+.bp-via .inv-tag{color:var(--accent-deep);background:var(--accent-weak);border:1px solid var(--accent-line);border-radius:5px;padding:0 6px;font-size:9.5px;font-weight:600;letter-spacing:.04em;text-transform:uppercase}
+
+/* loading / empty states for the stage */
+.brain-loading{display:flex;flex-direction:column;gap:14px;padding:40px 28px;align-items:center;justify-content:center;min-height:520px;text-align:center}
+.brain-loading .bl-spin{width:26px;height:26px;border-radius:50%;border:3px solid var(--accent-weak);border-top-color:var(--accent);animation:spin .8s linear infinite}
+.brain-loading .bl-t{font-size:15px;font-weight:700;letter-spacing:-0.02em}
+.brain-loading .bl-s{font-size:12.5px;color:var(--ink-3);font-family:var(--mono);max-width:440px}
+.brain-loading .bl-srcs{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;max-width:560px;margin-top:4px}
+.brain-loading .bl-src{display:inline-flex;align-items:center;gap:8px;padding:7px 12px;border:1px solid var(--line);border-radius:20px;background:#fff;font-size:11.5px;color:var(--ink-3);font-family:var(--mono);transition:.3s}
+.brain-loading .bl-src .d{width:7px;height:7px;border-radius:50%;background:var(--ink-4);flex:none}
+.brain-loading .bl-src.done{border-color:var(--accent-line);background:var(--accent-weak);color:var(--accent-deep)}
+.brain-loading .bl-src.done .d{background:var(--accent)}
+.brain-err{padding:34px 26px;min-height:300px;display:flex;align-items:center;justify-content:center}
+
+@media (max-width:900px){
+  .brain-panel.open{position:absolute;right:0;top:0;bottom:0;width:300px;z-index:20;box-shadow:var(--shadow-lg)}
+  .bp-inner{width:300px}
+  .brain-body{min-height:480px}
+}
+@media print{ #view-brain{display:none !important} }
+
+/* ============================================================
+   COMPANY-NAME AUTOCOMPLETE  (shared dropdown for every search input)
+   Light SaaS card appended to <body>, positioned by the input rect.
+   ============================================================ */
+.ac-menu{
+  position:absolute; z-index:120; background:var(--surface);
+  border:1px solid var(--line); border-radius:var(--r-sm);
+  box-shadow:var(--shadow-lg); overflow:hidden; padding:4px;
+  max-height:320px; overflow-y:auto;
+}
+.ac-item{
+  display:flex; align-items:center; gap:12px; padding:8px 10px;
+  border-radius:6px; cursor:pointer; transition:background .1s;
+}
+.ac-item:hover, .ac-item.ac-active{background:var(--accent-weak)}
+.ac-name{flex:1; min-width:0; font-size:13.5px; font-weight:600; letter-spacing:-0.01em; color:var(--ink); white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+.ac-item.ac-active .ac-name, .ac-item:hover .ac-name{color:var(--accent-deep)}
+.ac-num{font-family:var(--mono); font-size:11px; color:var(--ink-4); flex:none; letter-spacing:.02em}
+@media print{ .ac-menu{display:none !important} }
 </style>
 </head>
 <body>
@@ -581,6 +855,10 @@ a.media-t:hover{color:var(--accent)}
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
         Assess
       </button>
+      <button class="nav-btn" data-view="brain">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="2.4"/><circle cx="5" cy="5" r="2.2"/><circle cx="19" cy="5" r="2.2"/><circle cx="5" cy="19" r="2.2"/><circle cx="19" cy="19" r="2.2"/><path d="M10.3 10.3 6.6 6.6M13.7 10.3l3.7-3.7M10.3 13.7l-3.7 3.7M13.7 13.7l3.7 3.7"/></svg>
+        Brain
+      </button>
       <button class="nav-btn" data-view="ask">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
         Ask
@@ -607,6 +885,9 @@ a.media-t:hover{color:var(--accent)}
         <kbd>↵</kbd>
       </div>
       <div class="top-r">
+        <button class="btn tour-cta" id="tourBtn" title="Take the 60-second guided tour">
+          <span class="tri">▶</span> Guided tour
+        </button>
         <button class="btn" id="exportBtn">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M12 18v-6"/><path d="m9 15 3 3 3-3"/></svg>
           Export PDF
@@ -619,6 +900,8 @@ a.media-t:hover{color:var(--accent)}
     <section class="view" id="view-portfolio"></section>
     <!-- ===== ASSESS ===== -->
     <section class="view hide" id="view-assess"></section>
+    <!-- ===== BRAIN ===== -->
+    <section class="view hide" id="view-brain"></section>
     <!-- ===== ASK ===== -->
     <section class="view hide" id="view-ask"></section>
     <!-- ===== MONITORING ===== -->
@@ -626,6 +909,8 @@ a.media-t:hover{color:var(--accent)}
   </div>
 </div>
 <div class="toasts" id="toasts"></div>
+
+<!-- ===== Guided tour overlay is created/destroyed dynamically by the Tour module (see the inline script) ===== -->
 
 <!-- ===== Orbital · live activity console (the only dark surface) ===== -->
 <aside class="console no-print collapsed" id="console" aria-label="Orbital live activity console">
@@ -703,6 +988,110 @@ function toast(msg,type="ok"){
   t.innerHTML = ico+`<span>${esc(msg)}</span>`;
   $("#toasts").appendChild(t);
   setTimeout(()=>{t.style.transition="opacity .3s,transform .3s";t.style.opacity="0";t.style.transform="translateX(8px)";setTimeout(()=>t.remove(),300);},3200);
+}
+
+/* ============================================================
+   COMPANY-NAME AUTOCOMPLETE — one reusable helper for every search box.
+   Hits the fast /api/suggest endpoint (debounced), renders a light
+   dropdown appended to <body> (so nothing clips it), supports
+   keyboard + mouse selection, and calls onPick(name) on choose.
+   ============================================================ */
+function attachAutocomplete(inputEl, onPick){
+  if(!inputEl || inputEl.dataset.acWired) return;   // idempotent
+  inputEl.dataset.acWired = "1";
+  inputEl.setAttribute("autocomplete","off");
+
+  let menu=null, items=[], active=-1, seq=0, debTimer=0;
+
+  function close(){
+    if(menu){ menu.remove(); menu=null; }
+    items=[]; active=-1;
+    window.removeEventListener("scroll", onScrollResize, true);
+    window.removeEventListener("resize", onScrollResize);
+  }
+  function onScrollResize(){ close(); }
+  function position(){
+    if(!menu) return;
+    const r = inputEl.getBoundingClientRect();
+    menu.style.left  = (r.left + window.scrollX) + "px";
+    menu.style.top   = (r.bottom + window.scrollY + 4) + "px";
+    menu.style.width = r.width + "px";
+  }
+  function ensureMenu(){
+    if(menu) return menu;
+    menu = el("div","ac-menu");
+    // keep focus on the input when clicking a row (avoid blur-close race)
+    menu.addEventListener("mousedown", e=>e.preventDefault());
+    document.body.appendChild(menu);
+    position();
+    window.addEventListener("scroll", onScrollResize, true);
+    window.addEventListener("resize", onScrollResize);
+    return menu;
+  }
+  function paintActive(){
+    if(!menu) return;
+    $$(".ac-item",menu).forEach((row,i)=>row.classList.toggle("ac-active", i===active));
+    if(active>=0){ const row=$$(".ac-item",menu)[active]; row&&row.scrollIntoView({block:"nearest"}); }
+  }
+  function pick(i){
+    const it = items[i]; if(!it) return;
+    inputEl.value = it.name;          // company names are UPPER-CASE
+    close();
+    try{ onPick && onPick(it.name); }catch(e){}
+  }
+  function render(list){
+    items = Array.isArray(list)?list.slice(0,8):[];
+    if(!items.length){ close(); return; }
+    ensureMenu();
+    menu.innerHTML = items.map((it,i)=>
+      `<div class="ac-item" data-i="${i}">`+
+        `<span class="ac-name">${esc(it.name||"")}</span>`+
+        `<span class="ac-num mono">${esc(it.number||"")}</span>`+
+      `</div>`).join("");
+    active=-1;
+    position();
+    $$(".ac-item",menu).forEach(row=>{
+      row.addEventListener("mouseenter",()=>{ active=Number(row.dataset.i); paintActive(); });
+      row.addEventListener("click",()=>pick(Number(row.dataset.i)));
+    });
+  }
+  async function fetchSuggest(term){
+    const mySeq = ++seq;
+    try{
+      const r = await fetch("/api/suggest?q="+encodeURIComponent(term), {headers:{"Accept":"application/json"}, credentials:"same-origin"});
+      if(!r.ok){ if(mySeq===seq) close(); return; }
+      const list = await r.json();
+      if(mySeq!==seq) return;          // a newer keystroke superseded this
+      render(list);
+    }catch(e){ if(mySeq===seq) close(); }
+  }
+
+  inputEl.addEventListener("input",()=>{
+    const term = inputEl.value.trim();
+    clearTimeout(debTimer);
+    if(term.length<2){ seq++; close(); return; }
+    debTimer = setTimeout(()=>fetchSuggest(term), 120);
+  });
+  inputEl.addEventListener("keydown",e=>{
+    if(!menu || !items.length){
+      if(e.key==="Escape") close();
+      return;
+    }
+    if(e.key==="ArrowDown"){ e.preventDefault(); active=(active+1)%items.length; paintActive(); }
+    else if(e.key==="ArrowUp"){ e.preventDefault(); active=(active-1+items.length)%items.length; paintActive(); }
+    else if(e.key==="Enter"){
+      if(active>=0){ e.preventDefault(); e.stopPropagation(); pick(active); }
+      else close();
+    }
+    else if(e.key==="Escape"){ e.preventDefault(); close(); }
+  });
+  inputEl.addEventListener("blur",()=>{ setTimeout(close, 120); });
+  // click anywhere outside the input/menu closes the dropdown
+  document.addEventListener("mousedown",e=>{
+    if(!menu) return;
+    if(e.target===inputEl || menu.contains(e.target)) return;
+    close();
+  });
 }
 
 /* ---------- fetch w/ timeout + graceful errors ---------- */
@@ -901,6 +1290,11 @@ function vm(data){
     ubo: data.ubo || null,
     contracts: data.contracts || null,
     narrative: data.narrative || null,
+    // ----- four new full-dossier fields (also ?full=1; may be null) -----
+    disqualifications: data.disqualifications || null,
+    financials: data.financials || null,
+    gazette: data.gazette || null,
+    gdelt: data.gdelt || null,
     property: data.property || null,
   };
 }
@@ -921,6 +1315,7 @@ function setView(v){
   $$("#nav .nav-btn").forEach(b=>b.classList.toggle("active", b.dataset.view===v));
   window.scrollTo({top:0,behavior:"instant"});
   if(v==="portfolio") renderPortfolio();
+  if(v==="brain") Brain.render();
   if(v==="ask") renderAsk();
   if(v==="monitoring") renderMonitoring();
   if(v==="assess" && !state.current){
@@ -1676,6 +2071,10 @@ function fullDossierCards(v,m){
     uboCard(m),
     contractsCard(m),
     narrativeCard(m),
+    disqualificationsCard(m),
+    financialsCard(m),
+    gazetteCard(m),
+    gdeltCard(m),
     propertyCard(m),
   ].filter(Boolean);
   if(!cards.length) return;
@@ -1857,7 +2256,7 @@ function narrativeCard(m){
   return card;
 }
 
-/* ----- 6) Property value (HM Land Registry, postcode-keyed via deeptech-dd) ----- */
+/* ----- Property value (HM Land Registry, postcode-keyed via deeptech-dd) ----- */
 function propertyCard(m){
   const p=m.property;
   if(!p) return null;
@@ -1883,6 +2282,152 @@ function propertyCard(m){
     ${range?`<div style="font-size:12.5px;color:var(--ink-3);margin-top:6px">range ${esc(range)}</div>`:""}
     ${ptype?`<div style="margin-top:10px"><span class="ctrl-chip">${ptype}</span></div>`:""}
     ${p.note?`<div style="font-family:var(--mono);font-size:10.5px;color:var(--ink-4);margin-top:12px">${esc(p.note)}</div>`:""}`;
+  return card;
+}
+
+/* ----- shared bits for the four new full-dossier cards ----- */
+// ISO date → YYYY-MM-DD (null/invalid-safe; never throws)
+function fmtISO(d){
+  if(!d) return "—";
+  const dt=new Date(d);
+  if(isNaN(dt)) return String(d).slice(0,10);
+  return dt.toISOString().slice(0,10);
+}
+// the dimmed "needs Companies House key" / unavailable body used by several cards
+function fdDim(text){
+  return `<div style="color:var(--ink-4);font-size:13px;padding:2px 0;display:flex;align-items:center;gap:9px">
+    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" style="color:var(--ink-4);flex:none"><circle cx="12" cy="12" r="9"/><path d="M12 8v4M12 16h.01"/></svg>
+    ${esc(text)}</div>`;
+}
+// a calm/positive body line with a green check
+function fdCalm(text){
+  return `<div style="color:var(--ink-2);font-size:13px;padding:2px 0;display:flex;align-items:center;gap:9px">
+    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" style="color:var(--green);flex:none"><circle cx="12" cy="12" r="9"/><path d="M9 12l2 2 4-4"/></svg>
+    ${esc(text)}</div>`;
+}
+
+/* ----- 6) Director disqualifications (disqualifications) ----- */
+function disqualificationsCard(m){
+  const d=m.disqualifications;
+  if(!d) return null;
+  const checked=isNum(d.checked)?d.checked:0;
+  const dqCount=isNum(d.disqualifiedCount)?d.disqualifiedCount:0;
+  const hits=Array.isArray(d.hits)?d.hits:[];
+  if(dqCount>0){
+    const {card,body}=fdSection("Director disqualifications",`${dqCount} disqualified`);
+    body.innerHTML=`
+      <div class="sanc-banner hit" style="margin-bottom:13px">
+        <div class="sanc-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><path d="M12 9v4M12 17h.01"/></svg></div>
+        <div><b>${dqCount} controller${dqCount===1?"":"s"} DISQUALIFIED</b><div class="sub">${checked} controller${checked===1?"":"s"} checked against the disqualified-directors register</div></div>
+      </div>
+      ${hits.map(h=>`<div class="hit-row" style="display:block">
+        <div class="hn">${esc(h&&h.name||"Unknown person")}</div>
+        ${h&&h.reason?`<div class="hm" style="margin-top:3px">${esc(h.reason)}</div>`:""}
+        <div class="hm" style="margin-top:3px">${esc(fmtISO(h&&h.from))} → ${esc(fmtISO(h&&h.to))}</div>
+      </div>`).join("")}`;
+    return card;
+  }
+  const {card,body}=fdSection("Director disqualifications", (d.available!==false && checked>0) ? `${checked} checked` : "");
+  if(d.available!==false && checked>0){
+    body.innerHTML=fdCalm(`${checked} controller${checked===1?"":"s"} checked · none disqualified`);
+  } else {
+    body.innerHTML=fdDim("needs Companies House key");
+  }
+  return card;
+}
+
+/* ----- 7) Financial health (financials) ----- */
+function financialsCard(m){
+  const f=m.financials;
+  if(!f) return null;
+  if(f.available===false){
+    const {card,body}=fdSection("Financial health","");
+    body.innerHTML=fdDim("needs Companies House key");
+    return card;
+  }
+  const st=String(f.accountsStatus||"unknown").toLowerCase();
+  const chip = st==="overdue"
+    ? `<span class="pill RED"><span class="dot"></span>accounts overdue</span>`
+    : st==="current"
+      ? `<span class="pill GREEN"><span class="dot"></span>accounts current</span>`
+      : `<span class="pill NEU"><span class="dot"></span>accounts ${esc(st)}</span>`;
+  const {card,body}=fdSection("Financial health","");
+  const rows=[
+    ["Last accounts", f.lastAccounts && fmtISO(f.lastAccounts)],
+    ["Next due", f.nextDue && fmtISO(f.nextDue)],
+    ["Category", f.accountsCategory],
+    ["Incorporated", f.incorporated && fmtISO(f.incorporated)],
+    ["Type", f.type],
+  ];
+  body.innerHTML=`
+    <div style="margin-bottom:13px">${chip}</div>
+    <div class="def">${rows.map(([k,val])=>
+      `<dt>${esc(k)}</dt><dd>${esc(val!=null&&val!==""?val:"—")}</dd>`).join("")}</div>`;
+  return card;
+}
+
+/* ----- 8) Official insolvency notices · The Gazette (gazette) ----- */
+function gazetteCard(m){
+  const g=m.gazette;
+  if(!g) return null;
+  const count=isNum(g.noticeCount)?g.noticeCount:0;
+  const notices=Array.isArray(g.notices)?g.notices:[];
+  if(count>0){
+    const {card,body}=fdSection("Official insolvency notices · The Gazette",`${count} notice${count===1?"":"s"}`);
+    const latest=g.latest;
+    const latestLine = latest
+      ? `<div class="sanc-banner hit" style="margin-bottom:13px">
+          <div class="sanc-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg></div>
+          <div><b>${count} official notice${count===1?"":"s"} on the record</b><div class="sub">latest: ${esc(latest.type||"notice")} · ${esc(fmtISO(latest.date))}</div></div>
+        </div>` : "";
+    body.innerHTML = latestLine + `<div class="people-list">${notices.slice(0,3).map(nt=>`<div class="person" style="align-items:baseline">
+        <div class="mono" style="font-size:11px;color:var(--ink-4);white-space:nowrap;min-width:74px">${esc(fmtISO(nt&&nt.date))}</div>
+        <div style="min-width:0;flex:1">
+          ${nt&&nt.url
+            ? `<a class="media-t" href="${esc(nt.url)}" target="_blank" rel="noopener" style="font-size:13px">${esc(nt&&nt.title||nt&&nt.type||"Notice")}</a>`
+            : `<div style="font-size:13px;color:var(--ink);letter-spacing:-0.01em">${esc(nt&&nt.title||nt&&nt.type||"Notice")}</div>`}
+          ${nt&&nt.type?`<div class="p-ctrl"><span class="ctrl-chip">${esc(nt.type)}</span></div>`:""}
+        </div></div>`).join("")}</div>`;
+    return card;
+  }
+  const {card,body}=fdSection("Official insolvency notices · The Gazette","");
+  body.innerHTML=fdCalm("No insolvency notices on the official record");
+  return card;
+}
+
+/* ----- 9) Global media · sentiment (gdelt) ----- */
+function gdeltCard(m){
+  const g=m.gdelt;
+  if(!g) return null;
+  const count=isNum(g.articleCount)?g.articleCount:0;
+  const sample=Array.isArray(g.sample)?g.sample:[];
+  if(count===0){
+    const {card,body}=fdSection("Global media · sentiment","");
+    body.innerHTML=fdCalm("No significant global coverage");
+    return card;
+  }
+  const tone=isNum(g.avgTone)?g.avgTone:0;
+  const tone1=tone.toFixed(1);
+  const toneChip = tone<0
+    ? `<span class="pill RED"><span class="dot"></span>negative tone ${esc(tone1)}</span>`
+    : `<span class="pill GREEN"><span class="dot"></span>tone ${esc(tone1)}</span>`;
+  const {card,body}=fdSection("Global media · sentiment",`${count} article${count===1?"":"s"}`);
+  body.innerHTML=`
+    <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:13px">
+      <span class="mono" style="font-size:13px;font-weight:600;color:var(--ink)">${count.toLocaleString()} article${count===1?"":"s"}</span>
+      ${toneChip}
+    </div>
+    <div class="media-list">${sample.slice(0,3).map(a=>`<div class="media-item">
+      <div class="media-b">
+        ${a&&a.url
+          ? `<a class="media-t" href="${esc(a.url)}" target="_blank" rel="noopener">${esc(a&&a.title||"Untitled")}</a>`
+          : `<div class="media-t">${esc(a&&a.title||"Untitled")}</div>`}
+        <div class="media-m">
+          ${a&&a.domain?`<span class="src">${esc(a.domain)}</span>`:""}
+          ${a&&a.domain&&a&&a.date?`<span class="dotsep"></span>`:""}
+          ${a&&a.date?`<span>${esc(fmtISO(a.date))}</span>`:""}
+        </div>
+      </div></div>`).join("")}</div>`;
   return card;
 }
 
@@ -2063,6 +2608,13 @@ $("#globalSearch").addEventListener("keydown",e=>{
     openAssess(val);
   }
 });
+// company-name autocomplete on the top-bar search → same submit (watch + assess)
+attachAutocomplete($("#globalSearch"), name=>{
+  const val=String(name||"").trim(); if(!val) return;
+  $("#globalSearch").value="";
+  addToWatch(val);
+  openAssess(val);
+});
 // keyboard "/" focuses search
 document.addEventListener("keydown",e=>{
   if(e.key==="/" && document.activeElement.tagName!=="INPUT" && document.activeElement.tagName!=="TEXTAREA"){
@@ -2094,9 +2646,1171 @@ doAsk = async function(q){
   }
 };
 
+/* ============================================================
+   BRAIN — the explorable multi-source graph (the centrepiece).
+   Renders Orbital/Taxi as the ROUTER composing many independent
+   typed sources. A radial graph: subject company at the centre,
+   the TYPED SOURCES (.taxi files) on the inner ring, and the
+   ENTITIES each source surfaced on the outer ring. The edge from
+   the company to each source IS the Taxi route (source.via); the
+   invented hop glows permanently. Three switchable click modes:
+   Re-centre · Expand · Inspect. Vanilla JS; reuses $,$$,el,esc.
+   ============================================================ */
+const Brain = (()=>{
+  const LS_MODE = "orbital.brain.mode.v1";
+  const NS = "http://www.w3.org/2000/svg";
+  const DEFAULT = "PROMOAT LIMITED";
+  // session state
+  let mode = (()=>{ const m=load(LS_MODE,"recentre"); return ["recentre","expand","inspect"].includes(m)?m:"recentre"; })();
+  let subject = null;         // current subject company name
+  let model = null;           // {nodes:[], edges:[]}
+  let raw = null;             // last vm
+  let selected = null;        // selected node id
+  let token = 0;              // guards against stale async loads
+  let chromeBuilt = false;
+  const expanded = new Set(); // node ids already expanded (Expand mode)
+
+  /* ---------- icons ---------- */
+  const IC = {
+    re:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 2v6h-6M3 12a9 9 0 0 1 15-6.7L21 8M21 22v-6h-6M3 12a9 9 0 0 0 15 6.7L21 16"/></svg>',
+    ex:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg>',
+    in:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.2-3.2"/></svg>',
+    search:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>',
+    x:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>',
+    node:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="2.4"/><circle cx="5" cy="5" r="2.2"/><circle cx="19" cy="5" r="2.2"/><circle cx="5" cy="19" r="2.2"/><circle cx="19" cy="19" r="2.2"/><path d="M10.3 10.3 6.6 6.6M13.7 10.3l3.7-3.7M10.3 13.7l-3.7 3.7M13.7 13.7l3.7 3.7"/></svg>',
+  };
+  const MODE_CAP = {
+    recentre:"Re-centre — click any company to make it the new subject and rebuild the brain around it.",
+    expand:"Expand — click a node to grow the web in place; its own connections are appended without changing the subject.",
+    inspect:"Inspect — click a node to open its detail panel; for a source you'll see its real .taxi. The graph stays put.",
+  };
+
+  /* ---------- the invented-hop test ---------- */
+  // The risk source's route is "name → GLEIF → company-number → RiskService":
+  // the hop Orbital invented is the one whose `via` contains "company-number →".
+  const isInvented = (via)=> /company-number\s*→/i.test(String(via||""));
+
+  /* ---------- build the graph model from a brain vm ---------- */
+  function buildModel(m){
+    const nodes=[], edges=[];
+    const add=(n)=>{ nodes.push(n); return n; };
+    const link=(a,b,extra)=>{ edges.push(Object.assign({from:a,to:b},extra||{})); };
+
+    // ----- CENTRE: the subject company -----
+    add({ id:"subject", kind:"subject", label:titleCase(m.name), data:m });
+
+    // ----- INNER RING: the typed sources (one per lineage.sources entry) -----
+    const L = m.lineage||{};
+    const srcs = Array.isArray(L.sources)?L.sources:[];
+    const srcById = {};               // node-key -> source object
+    const srcNodeId = (s)=> "src:"+(s.node||s.taxiFile||s.type||Math.random());
+    srcs.forEach(s=>{
+      const id = srcNodeId(s);
+      if(srcById[id]) return;         // de-dupe
+      srcById[id]=s;
+      const empty = !(Number(s.rows)>0);
+      const inv = isInvented(s.via);
+      add({ id, kind:"source", label:s.taxiFile||s.label||"source.taxi",
+            srcKey:s.node, via:s.via||"", invented:inv, empty,
+            rows:Number(s.rows)||0, source:s });
+      link("subject", id, { route:true, via:s.via||"", invented:inv, empty });
+    });
+    // find a source node id by its short key (e.g. "risk","ubo","sanctions")
+    const byKey = (k)=>{ const hit=nodes.find(n=>n.kind==="source" && n.srcKey===k); return hit?hit.id:null; };
+    const riskSrc = byKey("risk");
+
+    // ----- OUTER RING: the entities each source surfaced -----
+    // (a) controllers (person) + failed companies (red) — surfaced by the risk source
+    const net = m.network||{nodes:[],edges:[]};
+    const netNodes = Array.isArray(net.nodes)?net.nodes:[];
+    const persons = netNodes.filter(n=>n&&n.type==="person");
+    const failedCos = netNodes.filter(n=>n&&n.type==="company"&&!n.subject&&n.failed);
+    // index screening by name for richer person facts
+    const screen = {};
+    const ps = m.peopleScreening && Array.isArray(m.peopleScreening.people) ? m.peopleScreening.people : [];
+    ps.forEach(p=>{ if(p&&p.name) screen[key(p.name)]=p; });
+    // controllers: prefer risk.controllers, enrich with network person + screening
+    const controllers = Array.isArray(m.controllers)?m.controllers:[];
+    const ctrlSeen = new Set();
+    const pushPerson = (name, opts)=>{
+      const k = key(name); if(!name || ctrlSeen.has(k)) return;
+      ctrlSeen.add(k);
+      const netP = persons.find(p=>key(p.label)===k);
+      const scr = screen[k];
+      const id = "person:"+k;
+      add({ id, kind:"person", label:titleCase(name),
+        control: opts&&opts.control || (scr&&scr.control) || "",
+        failedCount: netP&&typeof netP.failed==="number"?netP.failed:null,
+        controlsCount: netP&&typeof netP.controls==="number"?netP.controls:null,
+        screen: scr||null, parent: riskSrc });
+      if(riskSrc) link(riskSrc, id, { entity:true });
+    };
+    controllers.slice(0,3).forEach(c=> pushPerson(c.name, {control:c.control}));
+    // if controllers absent, fall back to network persons
+    if(!controllers.length) persons.slice(0,3).forEach(p=> pushPerson(p.label));
+    // failed/insolvent companies (cap to keep the ring legible; rest via Expand)
+    failedCos.slice(0,6).forEach(c=>{
+      const id="failco:"+key(c.label||c.id);
+      add({ id, kind:"failed", label:titleCase(c.label||"Company"),
+            status:c.status||"failed", coNumber:c.id, parent:riskSrc, netId:c.id });
+      if(riskSrc) link(riskSrc, id, { entity:true });
+    });
+
+    // (b) parent / ultimate parent — surfaced by the ubo source
+    const uboSrc = byKey("ubo"), u=m.ubo;
+    if(uboSrc && u){
+      const addCo = (p,role)=>{
+        if(!p||!p.name) return;
+        const id="parent:"+key(p.name);
+        if(nodes.some(n=>n.id===id)) return;
+        add({ id, kind:"company", label:titleCase(p.name),
+              role, country:p.country||"", parent:uboSrc });
+        link(uboSrc, id, { entity:true });
+      };
+      addCo(u.directParent,"direct parent");
+      if(u.ultimateParent && (!u.directParent || key(u.ultimateParent.name)!==key(u.directParent.name)))
+        addCo(u.ultimateParent,"ultimate parent");
+    }
+
+    // (c) a few active officers — surfaced by the live Companies House source
+    const chSrc = byKey("chlive"), ch=m.companiesHouseLive;
+    const officers = ch && Array.isArray(ch.officers)?ch.officers:[];
+    if(chSrc) officers.slice(0,2).forEach(o=>{
+      if(!o||!o.name) return;
+      const k=key(o.name);
+      if(ctrlSeen.has(k)) return;     // don't duplicate a controller already shown
+      const id="officer:"+k;
+      if(nodes.some(n=>n.id===id)) return;
+      add({ id, kind:"person", label:titleCase(o.name), role:o.role||"officer",
+            appointedOn:o.appointedOn||"", officer:true, parent:chSrc });
+      link(chSrc, id, { entity:true });
+    });
+
+    // (d) sanctions hit — surfaced by the sanctions source
+    const sancSrc = byKey("sanctions"), s=m.sanctions;
+    if(sancSrc && s){
+      const hits=Array.isArray(s.hits)?s.hits:[];
+      const isHit = (s.status==="hit") || (Number(s.hitCount)>0) || hits.length>0;
+      if(isHit){
+        const h=hits[0]||{};
+        const id="sanc:"+key(h.name||"hit");
+        add({ id, kind:"failed", sanction:true, label:titleCase(h.name||"Sanctions match"),
+              list:h.list||"", program:h.program||"", parent:sancSrc });
+        link(sancSrc, id, { entity:true });
+      }
+    }
+
+    // (e) top public contract — surfaced by the contracts source
+    const conSrc = byKey("contracts"), c=m.contracts;
+    const top = c && Array.isArray(c.topContracts)?c.topContracts:[];
+    if(conSrc && top.length){
+      const t=top[0];
+      const id="contract:0";
+      add({ id, kind:"company", contract:true, label:t.title||"Public contract",
+            buyer:t.buyer||"", value:t.value, status:t.status||"", parent:conSrc });
+      link(conSrc, id, { entity:true });
+    }
+
+    return { nodes, edges };
+  }
+
+  /* ---------- radial layout: subject centre · sources inner · entities outer ---------- */
+  function layout(mdl, W, H){
+    const cx=W/2, cy=H/2;
+    const pos={};
+    pos["subject"]={x:cx,y:cy};
+    const sources = mdl.nodes.filter(n=>n.kind==="source");
+    const rInner = Math.min(W,H)*0.255;
+    const rOuter = Math.min(W,H)*0.435;
+    const sN = sources.length||1;
+    // place sources evenly; start at -90deg (top) for a balanced look
+    const start = -Math.PI/2;
+    sources.forEach((s,i)=>{
+      const a = start + (i/sN)*Math.PI*2;
+      pos[s.id]={x:cx+Math.cos(a)*rInner, y:cy+Math.sin(a)*rInner, ang:a};
+      // entities of this source fan out just beyond it, centred on its angle
+      const kids = mdl.edges.filter(e=>e.from===s.id && e.entity).map(e=>e.to);
+      const kN=kids.length;
+      kids.forEach((kid,j)=>{
+        // spread within a wedge around the source's angle; widen with count
+        const spread = Math.min(Math.PI*2/sN*0.92, 0.36 + kN*0.16);
+        const off = kN===1 ? 0 : (j-(kN-1)/2)/(kN-1)*spread;
+        const a2 = a+off;
+        // alternate radius slightly so labels don't collide
+        const r2 = rOuter + (j%2)*Math.min(W,H)*0.055;
+        pos[kid]={x:cx+Math.cos(a2)*r2, y:cy+Math.sin(a2)*r2, ang:a2};
+      });
+    });
+    // any node still unplaced (e.g. expanded extras) → ring further out by parent angle
+    mdl.nodes.forEach(n=>{
+      if(pos[n.id]) return;
+      const pe = mdl.edges.find(e=>e.to===n.id);
+      const base = pe && pos[pe.from] ? pos[pe.from] : {x:cx,y:cy,ang:0};
+      const a = (base.ang!=null?base.ang:Math.atan2(base.y-cy,base.x-cx)) + (Math.random()-0.5)*0.5;
+      const r = rOuter + Math.min(W,H)*0.12;
+      pos[n.id]={x:cx+Math.cos(a)*r, y:cy+Math.sin(a)*r, ang:a};
+    });
+    // clamp inside the viewbox with a margin for labels
+    const M=70;
+    Object.values(pos).forEach(p=>{ p.x=Math.max(M,Math.min(W-M,p.x)); p.y=Math.max(48,Math.min(H-40,p.y)); });
+    return pos;
+  }
+
+  /* ---------- colours per node kind ---------- */
+  function fillFor(n){
+    if(n.kind==="subject") return "var(--accent)";
+    if(n.kind==="person")  return "#7A5AF8";       // violet
+    if(n.kind==="failed")  return "var(--red)";    // #D92D20
+    if(n.kind==="source")  return n.empty?"#F2F4F7":"#fff";
+    return "#64748B";                              // slate (other company)
+  }
+  function avaKindClass(n){
+    if(n.kind==="person") return "person";
+    if(n.kind==="source") return "source";
+    if(n.kind==="failed") return "failed";
+    if(n.kind==="subject") return "";
+    return "slate";
+  }
+
+  /* ---------- draw the SVG graph ---------- */
+  function draw(){
+    const canvas=$("#brain-canvas"); if(!canvas) return;
+    canvas.innerHTML="";
+    if(!model || !model.nodes.length){ return; }
+    const W=1000, H=620;
+    const pos=layout(model,W,H);
+    const byId={}; model.nodes.forEach(n=>byId[n.id]=n);
+
+    const svg=document.createElementNS(NS,"svg");
+    svg.setAttribute("viewBox",`0 0 ${W} ${H}`);
+    svg.setAttribute("class","brain-svg");
+    svg.setAttribute("role","img");
+    svg.setAttribute("aria-label","Explorable multi-source company brain graph");
+
+    // ---- defs: soft node shadow ----
+    const defs=document.createElementNS(NS,"defs");
+    defs.innerHTML='<filter id="bNodeShadow" x="-40%" y="-40%" width="180%" height="180%"><feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#101828" flood-opacity="0.14"/></filter>';
+    svg.appendChild(defs);
+
+    const gEdges=document.createElementNS(NS,"g");
+    const gLabels=document.createElementNS(NS,"g");
+    const gNodes=document.createElementNS(NS,"g");
+
+    // ---- edges (curved) ----
+    const edgeEls=[];                 // {edge, path, labelBg, label}
+    model.edges.forEach(e=>{
+      const a=pos[e.from], b=pos[e.to]; if(!a||!b) return;
+      const path=document.createElementNS(NS,"path");
+      // gentle curve: bow the control point perpendicular to the segment
+      const mx=(a.x+b.x)/2, my=(a.y+b.y)/2;
+      const dx=b.x-a.x, dy=b.y-a.y, len=Math.hypot(dx,dy)||1;
+      const bow=Math.min(34,len*0.16);
+      const cxp=mx + (-dy/len)*bow, cyp=my + (dx/len)*bow;
+      path.setAttribute("d",`M ${a.x.toFixed(1)} ${a.y.toFixed(1)} Q ${cxp.toFixed(1)} ${cyp.toFixed(1)} ${b.x.toFixed(1)} ${b.y.toFixed(1)}`);
+      let cls="b-edge";
+      if(e.route) cls+= e.invented ? " route invented" : (e.empty?" route dim":" route");
+      else if(e.entity) cls+=" entity";
+      path.setAttribute("class",cls);
+      gEdges.appendChild(path);
+      // a second animated flow line over the invented hop
+      if(e.invented){
+        const flow=document.createElementNS(NS,"path");
+        flow.setAttribute("d",path.getAttribute("d"));
+        flow.setAttribute("class","b-edge invented-flow");
+        gEdges.appendChild(flow);
+      }
+      // via-label for routing edges (sources). Invented always shown; others on hover/selected.
+      let labelBg=null,label=null;
+      if(e.route && e.via){
+        const lx=cxp, ly=cyp-2;
+        const txt=e.via;
+        label=document.createElementNS(NS,"text");
+        label.setAttribute("x",lx.toFixed(1)); label.setAttribute("y",ly.toFixed(1));
+        label.setAttribute("text-anchor","middle");
+        label.setAttribute("class","b-edge-label"+(e.invented?" inv show":""));
+        label.textContent=txt;
+        labelBg=document.createElementNS(NS,"rect");
+        const w=Math.min(textWidth(txt,10)+10, 360);
+        labelBg.setAttribute("x",(lx-w/2).toFixed(1)); labelBg.setAttribute("y",(ly-11).toFixed(1));
+        labelBg.setAttribute("width",w.toFixed(1)); labelBg.setAttribute("height","15");
+        labelBg.setAttribute("rx","4");
+        labelBg.setAttribute("class","b-edge-label-bg"+(e.invented?" inv show":""));
+        gLabels.appendChild(labelBg); gLabels.appendChild(label);
+      }
+      edgeEls.push({edge:e,path,labelBg,label});
+    });
+
+    svg.appendChild(gEdges);
+    svg.appendChild(gLabels);
+
+    // helper: show/hide a source edge's via-label
+    function setEdgeLabel(srcId,on){
+      edgeEls.forEach(ee=>{
+        if(!ee.label) return;
+        if(ee.edge.invented) return;          // invented label is permanent
+        if(ee.edge.to===srcId || ee.edge.from===srcId){
+          ee.label.classList.toggle("show",on);
+          ee.labelBg.classList.toggle("show",on);
+          ee.path.classList.toggle("hot",on);
+        }
+      });
+    }
+
+    // ---- nodes ----
+    model.nodes.forEach(n=>{
+      const p=pos[n.id]; if(!p) return;
+      const g=document.createElementNS(NS,"g");
+      g.setAttribute("class","b-node "+n.kind+(selected===n.id?" sel":""));
+      g.dataset.id=n.id;
+
+      // selection ring
+      const selr=document.createElementNS(NS,"circle");
+      selr.setAttribute("cx",p.x); selr.setAttribute("cy",p.y);
+      selr.setAttribute("class","selring");
+      selr.setAttribute("fill","none"); selr.setAttribute("stroke","var(--accent)");
+      selr.setAttribute("stroke-width","2"); selr.setAttribute("stroke-dasharray","3 3");
+
+      if(n.kind==="subject"){
+        selr.setAttribute("r","40");
+        const glow=document.createElementNS(NS,"circle");
+        glow.setAttribute("cx",p.x); glow.setAttribute("cy",p.y); glow.setAttribute("r","42");
+        glow.setAttribute("fill","var(--accent)"); glow.setAttribute("opacity",".10");
+        const rect=document.createElementNS(NS,"rect");
+        rect.setAttribute("class","nrect");
+        rect.setAttribute("x",p.x-26); rect.setAttribute("y",p.y-26); rect.setAttribute("width",52); rect.setAttribute("height",52); rect.setAttribute("rx",13);
+        rect.setAttribute("fill","var(--accent)"); rect.setAttribute("stroke","#fff"); rect.setAttribute("stroke-width",3);
+        rect.setAttribute("filter","url(#bNodeShadow)");
+        g.appendChild(glow); g.appendChild(selr); g.appendChild(rect);
+        g.appendChild(svgText(p.x,p.y+5,initials(n.label),{anchor:"middle",cls:"b-node-sub",fill:"#fff",weight:700,size:14}));
+        g.appendChild(svgText(p.x,p.y+52,clip(n.label,30),{anchor:"middle",cls:"b-node-label subject",fill:"var(--ink)",weight:700,size:13}));
+        g.appendChild(svgText(p.x,p.y+67,"subject company",{anchor:"middle",cls:"b-node-sub",fill:"var(--accent)",size:9.5}));
+      }
+      else if(n.kind==="source"){
+        selr.setAttribute("r","28");
+        const rect=document.createElementNS(NS,"rect");
+        rect.setAttribute("class","nrect");
+        rect.setAttribute("x",p.x-16); rect.setAttribute("y",p.y-16); rect.setAttribute("width",32); rect.setAttribute("height",32); rect.setAttribute("rx",8);
+        rect.setAttribute("fill", n.empty?"#F8F9FB":"#fff");
+        rect.setAttribute("stroke", n.invented?"var(--accent)":(n.empty?"#E4E7EC":"var(--accent-line)"));
+        rect.setAttribute("stroke-width", n.invented?2.4:1.6);
+        rect.setAttribute("filter","url(#bNodeShadow)");
+        g.appendChild(selr); g.appendChild(rect);
+        // a small ".taxi" glyph
+        g.appendChild(svgText(p.x,p.y+4,"{ }",{anchor:"middle",cls:"b-node-sub",fill:n.empty?"var(--ink-4)":"var(--accent)",weight:700,size:11}));
+        const labY=p.ang>0?p.y+30:p.y-22;            // label below if lower half, above if upper
+        g.appendChild(svgText(p.x,labY,clip(n.label,22),{anchor:"middle",cls:"b-node-label",fill:n.empty?"var(--ink-4)":"var(--ink-2)",weight:600,size:11}));
+        if(n.invented){
+          // "invented" badge chip
+          const bw=58;
+          const chip=document.createElementNS(NS,"rect");
+          chip.setAttribute("x",p.x-bw/2); chip.setAttribute("y",p.y-30); chip.setAttribute("width",bw); chip.setAttribute("height",15); chip.setAttribute("rx",7.5);
+          chip.setAttribute("fill","var(--accent)");
+          g.appendChild(chip);
+          g.appendChild(svgText(p.x,p.y-19,"INVENTED",{anchor:"middle",cls:"b-badge-inv",size:8.5}));
+        }
+      }
+      else if(n.kind==="person"){
+        selr.setAttribute("r","24");
+        const circ=document.createElementNS(NS,"circle");
+        circ.setAttribute("class","ndot");
+        circ.setAttribute("cx",p.x); circ.setAttribute("cy",p.y); circ.setAttribute("r",15);
+        circ.setAttribute("fill","#fff"); circ.setAttribute("stroke","#7A5AF8"); circ.setAttribute("stroke-width",2.2);
+        circ.setAttribute("filter","url(#bNodeShadow)");
+        g.appendChild(selr); g.appendChild(circ);
+        // person glyph
+        const ic=document.createElementNS(NS,"path");
+        ic.setAttribute("d",`M ${p.x-4.5} ${p.y+6} a4.5 4.5 0 0 1 9 0 M ${p.x} ${p.y-1.5} m-3.2 -3.2 a3.2 3.2 0 1 0 6.4 0 a3.2 3.2 0 1 0 -6.4 0`);
+        ic.setAttribute("fill","#7A5AF8");
+        g.appendChild(ic);
+        const flagged = n.screen&&n.screen.flagged;
+        if(flagged){
+          const ring=document.createElementNS(NS,"circle");
+          ring.setAttribute("cx",p.x); ring.setAttribute("cy",p.y); ring.setAttribute("r",20);
+          ring.setAttribute("fill","none"); ring.setAttribute("stroke","var(--red-line)"); ring.setAttribute("stroke-width",1.5); ring.setAttribute("stroke-dasharray","2 3");
+          g.insertBefore(ring,circ);
+        }
+        g.appendChild(svgText(p.x,p.y+32,clip(n.label,24),{anchor:"middle",cls:"b-node-label",fill:"var(--ink)",weight:600,size:11}));
+        if(typeof n.failedCount==="number" && n.failedCount>0)
+          g.appendChild(svgText(p.x,p.y+44,`${n.failedCount} failed · ${n.controlsCount||"?"} run`,{anchor:"middle",cls:"b-node-sub",fill:"var(--red)",size:9}));
+      }
+      else { // failed or other company (rect)
+        const failed = n.kind==="failed";
+        selr.setAttribute("r","20");
+        const sz=failed?14:15;
+        const rect=document.createElementNS(NS,"rect");
+        rect.setAttribute("class","nrect");
+        rect.setAttribute("x",p.x-sz/2); rect.setAttribute("y",p.y-sz/2); rect.setAttribute("width",sz); rect.setAttribute("height",sz); rect.setAttribute("rx",4);
+        rect.setAttribute("fill", failed?"var(--red)":"#64748B");
+        rect.setAttribute("stroke","#fff"); rect.setAttribute("stroke-width",2);
+        rect.setAttribute("filter","url(#bNodeShadow)");
+        if(failed){
+          const halo=document.createElementNS(NS,"circle");
+          halo.setAttribute("cx",p.x); halo.setAttribute("cy",p.y); halo.setAttribute("r",12);
+          halo.setAttribute("fill","var(--red)"); halo.setAttribute("opacity",.10);
+          g.appendChild(halo);
+        }
+        g.appendChild(selr); g.appendChild(rect);
+        g.appendChild(svgText(p.x,p.y+28,clip(n.label,22),{anchor:"middle",cls:"b-node-label",fill:failed?"#667085":"var(--ink-2)",weight:500,size:9.5}));
+      }
+
+      // transparent hit area for reliable hover/click
+      const hit=document.createElementNS(NS,"circle");
+      hit.setAttribute("class","hit");
+      hit.setAttribute("cx",p.x); hit.setAttribute("cy",p.y);
+      hit.setAttribute("r", n.kind==="subject"?34:(n.kind==="source"?22:18));
+      g.appendChild(hit);
+
+      // ---- interactions ----
+      g.addEventListener("mouseenter",ev=>{ showTip(n,ev); if(n.kind==="source") setEdgeLabel(n.id,true); });
+      g.addEventListener("mousemove",moveTip);
+      g.addEventListener("mouseleave",()=>{ hideTip(); if(n.kind==="source") setEdgeLabel(n.id,false); });
+      g.addEventListener("click",ev=>{ ev.stopPropagation(); onNodeClick(n); });
+
+      gNodes.appendChild(g);
+    });
+
+    svg.appendChild(gNodes);
+    // clicking empty canvas clears selection + closes panel
+    svg.addEventListener("click",()=>{ if(mode==="inspect"){ selected=null; closePanel(); refreshSel(); } });
+    canvas.appendChild(svg);
+  }
+
+  // re-apply the .sel class without a full redraw
+  function refreshSel(){
+    $$("#brain-canvas .b-node").forEach(g=>{
+      g.classList.toggle("sel", g.dataset.id===selected);
+    });
+  }
+
+  /* ---------- svg helpers ---------- */
+  function svgText(x,y,txt,o){
+    o=o||{};
+    const t=document.createElementNS(NS,"text");
+    t.setAttribute("x",x); t.setAttribute("y",y);
+    if(o.anchor) t.setAttribute("text-anchor",o.anchor);
+    if(o.cls) t.setAttribute("class",o.cls);
+    if(o.fill) t.setAttribute("fill",o.fill);
+    if(o.weight) t.setAttribute("font-weight",o.weight);
+    if(o.size) t.setAttribute("font-size",o.size);
+    t.textContent=txt;
+    return t;
+  }
+  const clip=(s,n)=>{ s=String(s||""); return s.length>n?s.slice(0,n-1)+"…":s; };
+  const textWidth=(s,fs)=> String(s||"").length*fs*0.56;
+
+  /* ---------- tooltip ---------- */
+  function tipEl(){ let t=$("#brain-tip"); if(!t){ t=el("div","brain-tip"); t.id="brain-tip"; document.body.appendChild(t); } return t; }
+  function showTip(n,ev){
+    const t=tipEl();
+    const dotCls = n.kind==="person"?"":(n.kind==="failed"||n.kind==="subject"||n.kind==="source"||n.kind==="company"?"sq":"");
+    const dotCol = fillFor(n)===("#fff")?"var(--accent)":fillFor(n);
+    let rows="";
+    if(n.kind==="subject"){
+      const m=n.data;
+      rows = `<div class="tt-r">${m.number?("No. "+esc(m.number)+" · "):""}${esc(m.status||"")}</div>`+
+             `<div class="tt-r">Band <b>${esc(m.band||"—")}</b> · score <b>${m.score==null?"—":m.score}</b></div>`;
+    } else if(n.kind==="source"){
+      rows = `<div class="tt-r">${esc(n.source.type||"")} ${n.empty?"· <b>returned nothing</b>":"· <b>"+n.rows.toLocaleString()+"</b> row"+(n.rows===1?"":"s")}</div>`+
+             (n.via?`<div class="tt-r">route: ${esc(n.via)}</div>`:"")+
+             (n.invented?`<div class="tt-r"><b>invented hop</b> — Orbital chose this</div>`:"");
+    } else if(n.kind==="person"){
+      const bits=[];
+      if(n.control) bits.push(esc(n.control));
+      if(typeof n.failedCount==="number"&&n.failedCount>0) bits.push(`<b>${n.failedCount}</b> failed cos`);
+      if(n.role) bits.push(esc(n.role));
+      if(n.screen&&n.screen.flagged) bits.push(`<b style="color:#FDA29B">flagged</b>`);
+      rows = bits.length?`<div class="tt-r">${bits.join(" · ")}</div>`:`<div class="tt-r">controller</div>`;
+    } else if(n.kind==="failed"){
+      rows = n.sanction
+        ? `<div class="tt-r"><b style="color:#FDA29B">sanctions match</b>${n.list?" · "+esc(n.list):""}</div>`
+        : `<div class="tt-r"><b style="color:#FDA29B">${esc(n.status||"insolvent")}</b>${n.coNumber?" · No. "+esc(n.coNumber):""}</div>`;
+    } else {
+      rows = `<div class="tt-r">${esc(n.role||(n.contract?"public contract":"company"))}${n.country?" · "+esc(n.country):""}${n.contract&&isNum(n.value)?" · "+esc(fmtGBP(n.value)):""}</div>`;
+    }
+    const hint = mode==="recentre"
+      ? (n.kind==="subject"||n.kind==="failed"||n.kind==="company") && !n.contract ? "click → re-centre here" : "click → inspect"
+      : mode==="expand" ? "click → expand" : "click → inspect";
+    t.innerHTML=`<div class="tt-t"><span class="tt-k ${dotCls}" style="background:${dotCol}"></span>${esc(n.label)}</div>${rows}<div class="tt-hint">${hint}</div>`;
+    t.classList.add("show"); moveTip(ev);
+  }
+  function moveTip(ev){
+    const t=$("#brain-tip"); if(!t||!ev) return;
+    let x=ev.clientX+14, y=ev.clientY+14;
+    const w=t.offsetWidth||220, h=t.offsetHeight||60;
+    if(x+w>innerWidth-8) x=ev.clientX-w-14;
+    if(y+h>innerHeight-8) y=ev.clientY-h-14;
+    t.style.left=Math.max(8,x)+"px"; t.style.top=Math.max(8,y)+"px";
+  }
+  function hideTip(){ const t=$("#brain-tip"); if(t) t.classList.remove("show"); }
+
+  /* ---------- click behaviour per mode ---------- */
+  function onNodeClick(n){
+    if(mode==="recentre"){
+      // company nodes re-centre; everything else falls back to inspect
+      const canCentre = (n.kind==="subject"||n.kind==="failed"||n.kind==="company") && !n.contract && !n.sanction;
+      if(canCentre){
+        const name = n.kind==="subject" ? subject : n.label;
+        if(key(name)!==key(subject)) loadBrain(name);
+      } else {
+        openPanel(n);          // fall back
+      }
+    } else if(mode==="expand"){
+      expandNode(n);
+    } else { // inspect
+      selected=n.id; refreshSel(); openPanel(n);
+    }
+  }
+
+  /* ---------- Expand mode: append a node's own connections in place ---------- */
+  function expandNode(n){
+    if(!model) return;
+    let addedAny=false;
+    const has=(id)=>model.nodes.some(x=>x.id===id);
+    const addNode=(node)=>{ if(!has(node.id)){ model.nodes.push(node); addedAny=true; } };
+    const addEdge=(from,to,extra)=>{ if(!model.edges.some(e=>e.from===from&&e.to===to)){ model.edges.push(Object.assign({from,to},extra||{})); } };
+
+    if(n.kind==="source"){
+      // append more entities this source returned (beyond the initial cap)
+      const m=raw; if(!m){ flashExpanded(n); return; }
+      if(n.srcKey==="risk"){
+        const net=m.network||{}; const failed=(net.nodes||[]).filter(x=>x&&x.type==="company"&&!x.subject&&x.failed);
+        failed.forEach(c=>{ const id="failco:"+key(c.label||c.id);
+          addNode({id,kind:"failed",label:titleCase(c.label||"Company"),status:c.status||"failed",coNumber:c.id,parent:n.id});
+          addEdge(n.id,id,{entity:true});
+        });
+        (m.controllers||[]).forEach(c=>{ const id="person:"+key(c.name); if(!c.name)return;
+          if(!has(id)){ const netP=(net.nodes||[]).find(p=>p&&p.type==="person"&&key(p.label)===key(c.name));
+            addNode({id,kind:"person",label:titleCase(c.name),control:c.control||"",
+              failedCount:netP&&typeof netP.failed==="number"?netP.failed:null,
+              controlsCount:netP&&typeof netP.controls==="number"?netP.controls:null,parent:n.id});
+            addEdge(n.id,id,{entity:true}); }
+        });
+      } else if(n.srcKey==="people"||n.srcKey==="chlive"){
+        const ch=m.companiesHouseLive; const offs=ch&&Array.isArray(ch.officers)?ch.officers:[];
+        offs.forEach(o=>{ if(!o||!o.name)return; const id="officer:"+key(o.name);
+          addNode({id,kind:"person",label:titleCase(o.name),role:o.role||"officer",appointedOn:o.appointedOn||"",officer:true,parent:n.id});
+          addEdge(n.id,id,{entity:true});
+        });
+      } else if(n.srcKey==="ubo"){
+        const u=m.ubo; const kids=u&&Array.isArray(u.sampleChildren)?u.sampleChildren.filter(Boolean):[];
+        kids.slice(0,6).forEach((c,i)=>{ const id="child:"+i+":"+key(c);
+          addNode({id,kind:"company",label:titleCase(c),role:"subsidiary",parent:n.id});
+          addEdge(n.id,id,{entity:true});
+        });
+      } else if(n.srcKey==="contracts"){
+        const c=m.contracts; const top=c&&Array.isArray(c.topContracts)?c.topContracts:[];
+        top.slice(0,5).forEach((t,i)=>{ const id="contract:"+i;
+          addNode({id,kind:"company",contract:true,label:t.title||"Contract",buyer:t.buyer||"",value:t.value,status:t.status||"",parent:n.id});
+          addEdge(n.id,id,{entity:true});
+        });
+      } else if(n.srcKey==="adverseMedia"){
+        const am=Array.isArray(m.media)?m.media:[];
+        am.slice(0,4).forEach((it,i)=>{ const id="media:"+i;
+          addNode({id,kind:"company",media:true,label:it.title||"Article",source:it.source||it.channel||"",parent:n.id});
+          addEdge(n.id,id,{entity:true});
+        });
+      }
+    } else if(n.kind==="person"){
+      // a controller → their OTHER companies (the failed ones they ran, if available)
+      const m=raw; const net=m&&m.network?m.network:{nodes:[],edges:[]};
+      const failed=(net.nodes||[]).filter(x=>x&&x.type==="company"&&!x.subject&&x.failed);
+      failed.forEach(c=>{ const id="failco:"+key(c.label||c.id);
+        addNode({id,kind:"failed",label:titleCase(c.label||"Company"),status:c.status||"failed",coNumber:c.id,parent:n.id});
+        addEdge(n.id,id,{entity:true});
+      });
+    } else if(n.kind==="failed"||n.kind==="company"){
+      // re-anchoring without re-centring isn't available offline; pull the parent chain we have
+      const m=raw, u=m&&m.ubo;
+      if(u && (u.directParent||u.ultimateParent)){
+        [["directParent","direct parent"],["ultimateParent","ultimate parent"]].forEach(([k,role])=>{
+          const p=u[k]; if(!p||!p.name)return; const id="parent:"+key(p.name);
+          addNode({id,kind:"company",label:titleCase(p.name),role,country:p.country||"",parent:n.id});
+          addEdge(n.id,id,{entity:true});
+        });
+      }
+    }
+    expanded.add(n.id);
+    if(addedAny){ draw(); } else { flashExpanded(n); }
+  }
+  function flashExpanded(n){
+    // nothing more to append — give gentle feedback without breaking the layout
+    toast(`Nothing more to expand on ${titleCase(n.label)}`);
+  }
+
+  /* ---------- Inspect side panel ---------- */
+  function panelEl(){ return $("#brain-panel"); }
+  function closePanel(){ const p=panelEl(); if(p){ p.classList.remove("open"); p.innerHTML=""; } }
+  function openPanel(n){
+    const p=panelEl(); if(!p) return;
+    let bodyHTML="", actionsHTML="";
+    const kindLabel = {subject:"Subject company",source:"Typed source",person:"Person",failed:(n.sanction?"Sanctions match":"Failed company"),company:(n.contract?"Public contract":(n.media?"Adverse media":"Company"))}[n.kind]||"Node";
+    const avaCls = avaKindClass(n);
+    const ava = n.kind==="source" ? "{ }" : initials(n.label);
+
+    if(n.kind==="source"){
+      const s=n.source;
+      const summary = n.empty
+        ? `<b>${esc(n.label)}</b> was routed but returned <b>nothing</b> for this company.`
+        : `<b>${esc(n.label)}</b> returned <b>${n.rows.toLocaleString()}</b> row${n.rows===1?"":"s"} of type <b>${esc(s.type||"")}</b>.`;
+      bodyHTML += `<div class="bp-block"><div class="bp-bt">What it returned</div><div class="bp-summary">${summary}</div></div>`;
+      // routing chain (via) with invented marker
+      if(n.via){
+        const hops=String(n.via).split("→").map(h=>esc(h.trim())).filter(Boolean);
+        const chain=hops.map((h,i)=>`${i?'<span class="ar">→</span>':""}<span>${h}</span>`).join(" ");
+        bodyHTML += `<div class="bp-block"><div class="bp-bt">The route Taxi planned</div><div class="bp-via">${chain}${n.invented?' <span class="inv-tag">invented hop</span>':""}</div></div>`;
+      }
+      // the real .taxi
+      const taxi = s.schemaFull || s.schema || "";
+      if(taxi){
+        bodyHTML += `<div class="bp-block"><div class="bp-bt">Its entire integration — ${esc(n.label)}</div>`+
+          `<div class="bp-taxi"><div class="bp-taxi-top"><span class="lbl">${esc(s.operation||n.label)} · ${esc(s.endpoint||"typed source")}</span><span class="dots"><i></i><i></i><i></i></span></div>`+
+          `<pre>${esc(taxi)}</pre></div></div>`;
+      } else {
+        bodyHTML += `<div class="bp-block"><div class="bp-summary" style="color:var(--ink-4)">No .taxi schema returned for this source.</div></div>`;
+      }
+    }
+    else if(n.kind==="subject" || ((n.kind==="company"||n.kind==="failed") && !n.contract && !n.media && !n.sanction)){
+      // a COMPANY — key facts + Assess button
+      const m = n.kind==="subject" ? n.data : null;
+      const defs=[];
+      if(m){
+        defs.push(["CH number",m.number||"—"]);
+        defs.push(["Status",m.status||"—"]);
+        if(m.incorporated) defs.push(["Incorporated",m.incorporated]);
+        if(m.postcode) defs.push(["Postcode",m.postcode]);
+        defs.push(["LEI",m.lei||"Not registered"]);
+        defs.push(["Risk band",(m.band||"—")+" · "+(m.score==null?"—":m.score+"/100")]);
+      } else {
+        if(n.role) defs.push(["Relationship",titleCase(n.role)]);
+        if(n.country) defs.push(["Country",n.country]);
+        if(n.status) defs.push(["Status",n.status]);
+        if(n.coNumber) defs.push(["CH number",n.coNumber]);
+      }
+      bodyHTML += `<div class="bp-block"><div class="bp-bt">Key facts</div><dl class="bp-def">${defs.map(d=>`<dt>${esc(d[0])}</dt><dd>${esc(d[1])}</dd>`).join("")}</dl></div>`;
+      if(n.kind==="failed") bodyHTML += `<div class="bp-block"><div class="bp-summary" style="color:#912018">This entity is on the subject's ownership-failure branch. Re-centre on it to walk the next hop.</div></div>`;
+      actionsHTML = `<button class="btn btn-primary" data-act="assess"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>Assess</button>`+
+        ((n.kind!=="subject")?`<button class="btn" data-act="recentre">${IC.re}Re-centre</button>`:"");
+    }
+    else if(n.kind==="person"){
+      const chips=[];
+      if(n.control) chips.push(`<span class="bp-chip">${esc(n.control)}</span>`);
+      if(n.role) chips.push(`<span class="bp-chip">${esc(n.role)}</span>`);
+      if(typeof n.failedCount==="number"&&n.failedCount>0) chips.push(`<span class="bp-chip red">${n.failedCount} failed companies</span>`);
+      if(typeof n.controlsCount==="number"&&n.controlsCount>0) chips.push(`<span class="bp-chip">${n.controlsCount} companies controlled</span>`);
+      bodyHTML += `<div class="bp-block"><div class="bp-bt">Control</div><div class="bp-chips">${chips.length?chips.join(""):'<span class="bp-chip">control details on file</span>'}</div></div>`;
+      // screening result
+      const scr=n.screen;
+      let scrTxt, scrCls="";
+      if(scr && scr.flagged){
+        scrCls="red";
+        if(scr.sanctionsStatus==="hit") scrTxt=`Flagged — sanctions match${isNum(scr.sanctionsHits)&&scr.sanctionsHits>0?` (${scr.sanctionsHits})`:""}`;
+        else if(isNum(scr.adverseMediaCount)&&scr.adverseMediaCount>0) scrTxt=`Flagged — ${scr.adverseMediaCount} adverse mention${scr.adverseMediaCount===1?"":"s"}`;
+        else scrTxt="Flagged on screening";
+      } else if(scr && scr.sanctionsStatus==="unknown"){ scrTxt="Unscreened"; }
+      else if(scr){ scrTxt="Clear on sanctions & adverse-media"; }
+      else { scrTxt = n.officer?"Active officer (not separately screened)":"Screening result not returned"; }
+      bodyHTML += `<div class="bp-block"><div class="bp-bt">Screening result</div><div class="bp-chips"><span class="bp-chip ${scrCls}">${esc(scrTxt)}</span></div></div>`;
+    }
+    else if(n.contract){
+      const defs=[["Buyer",n.buyer||"—"],["Status",n.status||"—"]]; if(isNum(n.value)) defs.unshift(["Value",fmtGBP(n.value)]);
+      bodyHTML += `<div class="bp-block"><div class="bp-bt">Public-sector contract</div><dl class="bp-def">${defs.map(d=>`<dt>${esc(d[0])}</dt><dd>${esc(d[1])}</dd>`).join("")}</dl></div>`;
+    }
+    else if(n.sanction){
+      bodyHTML += `<div class="bp-block"><div class="bp-bt">Sanctions match</div><dl class="bp-def"><dt>List</dt><dd>${esc(n.list||"—")}</dd>${n.program?`<dt>Program</dt><dd>${esc(n.program)}</dd>`:""}</dl></div>`;
+    }
+    else {
+      bodyHTML += `<div class="bp-block"><div class="bp-summary">${esc(n.source||"")}</div></div>`;
+    }
+
+    // which source surfaced this entity?
+    if(n.parent){
+      const ps=model&&model.nodes.find(x=>x.id===n.parent);
+      if(ps) bodyHTML += `<div class="bp-block"><div class="bp-bt">Surfaced by</div><div class="bp-chips"><span class="bp-chip acc">${esc(ps.label)}</span></div></div>`;
+    }
+
+    p.innerHTML = `<div class="bp-inner">`+
+      `<div class="bp-head">`+
+        `<span class="bp-ava ${avaCls}" ${n.kind==="subject"?`style="${avaStyle(n.label)}"`:""}>${esc(ava)}</span>`+
+        `<div class="bp-htext"><div class="bp-kind">${esc(kindLabel)}</div><div class="bp-name">${esc(n.label)}</div></div>`+
+        `<button class="bp-x" data-act="close" title="Close">${IC.x}</button>`+
+      `</div>`+
+      `<div class="bp-body">${bodyHTML}${actionsHTML?`<div class="bp-actions">${actionsHTML}</div>`:""}</div>`+
+    `</div>`;
+    p.classList.add("open");
+    p.querySelectorAll("[data-act]").forEach(b=>b.addEventListener("click",()=>{
+      const a=b.dataset.act;
+      if(a==="close"){ selected=null; closePanel(); refreshSel(); }
+      else if(a==="assess"){ const nm = n.kind==="subject"?subject:n.label; openAssess(nm); }
+      else if(a==="recentre"){ const nm=n.label; closePanel(); selected=null; loadBrain(nm); }
+    }));
+  }
+
+  /* ---------- loading state ---------- */
+  function loadingHTML(name){
+    const srcs=["gleif.taxi","risk.taxi","social-news.taxi","sanctions.taxi","people.taxi","companies-house-live.taxi","gleif-ubo.taxi","contracts.taxi","risk-narrative.taxi"];
+    return `<div class="brain-loading">
+      <div class="bl-spin"></div>
+      <div class="bl-t">Assembling the brain for ${esc(titleCase(name))}</div>
+      <div class="bl-s">Orbital is routing one typed question across independent sources — no integration code. This can take ~15-20s.</div>
+      <div class="bl-srcs" id="bl-srcs">${srcs.map((s,i)=>`<span class="bl-src" id="bl-src-${i}"><span class="d"></span>${esc(s)}</span>`).join("")}</div>
+    </div>`;
+  }
+
+  /* ---------- load + (re)build around a company ---------- */
+  function loadBrain(name){
+    name=String(name||"").trim(); if(!name) return;
+    subject=name; selected=null; expanded.clear(); closePanel();
+    const search=$("#brain-search-input"); if(search) search.value=titleCase(name);
+    const canvas=$("#brain-canvas"); if(canvas) canvas.innerHTML=loadingHTML(name);
+    setStageTitle(name);
+    const my=++token;
+    // cosmetic: tick the source chips while we wait
+    const tick=[]; const chips=$$("#bl-srcs .bl-src");
+    chips.forEach((c,i)=> tick.push(setTimeout(()=>{ c.classList.add("done"); }, 500+i*900)));
+    getBrain(name,{full:true}).then(data=>{
+      if(my!==token) return;             // a newer load superseded this one
+      tick.forEach(clearTimeout);
+      raw=vm(data);
+      model=buildModel(raw);
+      draw();
+      updateCaption();
+    }).catch(err=>{
+      if(my!==token) return;
+      tick.forEach(clearTimeout);
+      const c=$("#brain-canvas");
+      if(c) c.innerHTML=`<div class="brain-err"><div class="err-banner"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4M12 17h.01"/><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg>
+        <div><b>Couldn't assemble the brain.</b><div style="margin-top:2px">${esc(err.message)} — the Orbital backend may be gated or offline. <a href="#" id="brain-retry">Retry</a></div></div></div></div>`;
+      $("#brain-retry")?.addEventListener("click",ev=>{ ev.preventDefault(); CACHE.delete(key(name)+"|full"); loadBrain(name); });
+    });
+  }
+
+  function setStageTitle(name){
+    const t=$("#brain-stage-name"); if(t) t.textContent=titleCase(name);
+  }
+  function updateCaption(){
+    const cap=$("#brain-cap"); if(!cap||!model) return;
+    const srcN=model.nodes.filter(n=>n.kind==="source").length;
+    const entN=model.nodes.filter(n=>n.kind!=="source"&&n.kind!=="subject").length;
+    cap.innerHTML=`<b>${srcN}</b> typed sources · <b>${entN}</b> entities surfaced · routed by Taxi`;
+  }
+
+  /* ---------- mode switch ---------- */
+  function setMode(m){
+    if(!["recentre","expand","inspect"].includes(m)) return;
+    mode=m; save(LS_MODE,m);
+    $$("#brain-modes .brain-mode").forEach(b=>b.classList.toggle("active",b.dataset.mode===m));
+    const cap=$("#brain-mode-cap"); if(cap) cap.textContent=MODE_CAP[m];
+    if(m!=="inspect"){ selected=null; closePanel(); refreshSel(); }
+  }
+
+  /* ---------- build the (static) view chrome once ---------- */
+  function buildChrome(){
+    const v=$("#view-brain");
+    v.innerHTML=`
+      <div class="page-head row-between">
+        <div>
+          <div class="page-eyebrow">Brain · explorable graph</div>
+          <h1 class="page-title">The company brain</h1>
+          <p class="page-sub">One typed question, fanned across many independent sources. Orbital/Taxi is the <b>router</b> — the edges below are the routes it planned, with zero integration code. Click to explore: re-centre, expand, or inspect.</p>
+        </div>
+      </div>
+      <div class="brain-head">
+        <div class="brain-search">
+          ${IC.search}
+          <input id="brain-search-input" type="text" autocomplete="off" spellcheck="false" placeholder="Type any UK company — e.g. Promoat Limited, Tesco PLC…" value="${esc(titleCase(DEFAULT))}">
+          <button class="btn btn-primary bs-go" id="brain-search-go">Map</button>
+        </div>
+        <div>
+          <div class="brain-modes" id="brain-modes" role="tablist" aria-label="Interaction mode">
+            <button class="brain-mode" data-mode="recentre" type="button">${IC.re}Re-centre</button>
+            <button class="brain-mode" data-mode="expand" type="button">${IC.ex}Expand</button>
+            <button class="brain-mode" data-mode="inspect" type="button">${IC.in}Inspect</button>
+          </div>
+        </div>
+      </div>
+      <div style="font-family:var(--mono);font-size:11.5px;color:var(--ink-3);margin:-6px 0 14px;display:flex;align-items:center;gap:8px">
+        <span style="width:6px;height:6px;border-radius:50%;background:var(--accent);flex:none"></span>
+        <span id="brain-mode-cap">${esc(MODE_CAP[mode])}</span>
+      </div>
+      <div class="brain-stage-wrap">
+        <div class="brain-stage-top">
+          <div class="bt-l">
+            <h3>${IC.node}<span id="brain-stage-name">${esc(titleCase(DEFAULT))}</span></h3>
+            <span class="brain-router-badge"><span class="spark"></span>Taxi · router</span>
+          </div>
+          <span class="brain-cap" id="brain-cap"></span>
+        </div>
+        <div class="brain-body">
+          <div class="brain-canvas" id="brain-canvas"></div>
+          <aside class="brain-panel" id="brain-panel"></aside>
+        </div>
+        <div class="brain-legend">
+          <div class="lg"><span class="sw sq" style="background:var(--accent)"></span> Subject</div>
+          <div class="lg"><span class="sw sq" style="background:#fff;box-shadow:0 0 0 1.5px var(--accent-line)"></span> Typed source (.taxi)</div>
+          <div class="lg"><span class="sw" style="background:#fff;box-shadow:0 0 0 2px #7A5AF8"></span> Person</div>
+          <div class="lg"><span class="sw sq" style="background:var(--red)"></span> Failed company</div>
+          <div class="lg"><span class="sw sq" style="background:#64748B"></span> Other company</div>
+          <div class="lg"><span class="ln glow"></span> Invented hop</div>
+          <div class="route-note"><span class="b"><span style="width:14px;height:0;border-top:2px solid var(--accent);display:inline-block"></span> edges = the route Taxi planned · 0 integration code</span></div>
+        </div>
+      </div>`;
+    // wire chrome
+    $("#brain-modes").addEventListener("click",e=>{ const b=e.target.closest(".brain-mode"); if(b) setMode(b.dataset.mode); });
+    const inp=$("#brain-search-input");
+    inp.addEventListener("keydown",e=>{ if(e.key==="Enter"){ e.preventDefault(); const val=inp.value.trim(); if(val) loadBrain(val); } });
+    $("#brain-search-go").addEventListener("click",()=>{ const val=inp.value.trim(); if(val) loadBrain(val); });
+    // company-name autocomplete on the Brain search → re-maps the graph
+    attachAutocomplete(inp, name=>{ const val=String(name||"").trim(); if(val) loadBrain(val); });
+    // reflow the graph on resize (viewBox is fixed, but the panel/legend may wrap)
+    chromeBuilt=true;
+  }
+
+  /* ---------- entry point ---------- */
+  function render(){
+    if(!chromeBuilt){ buildChrome(); }
+    setMode(mode);                       // sync the segmented control to the persisted mode
+    if(!model){ loadBrain(subject||DEFAULT); }
+  }
+
+  return { render };
+})();
+
+/* ============================================================
+   GUIDED TOUR — presenter-driven product walkthrough.
+   Purely additive: spotlights real UI, may trigger real app
+   actions (openAssess, console expand, view-.taxi), and fully
+   restores the app on exit. Vanilla JS; reuses $, $$, el, esc.
+   ============================================================ */
+const Tour = (()=>{
+  const LS_PILL = "orbital.tour.pillDismissed.v1";
+  // live DOM handles (created on start, destroyed on exit)
+  let root=null, backdrop=null, ring=null, card=null;
+  let idx=0, running=false, repositionRAF=0;
+  // app state captured at start, restored on exit
+  let saved=null;
+
+  const ICX = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>';
+  const ICARR = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>';
+  const ICBACK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M11 18l-6-6 6-6"/></svg>';
+  const ICRE  = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 2v6h-6M3 12a9 9 0 0 1 15-6.7L21 8M21 22v-6h-6"/></svg>';
+
+  /* ---------- helpers ---------- */
+  // poll for a target element until it exists or the deadline passes
+  function waitFor(getter, ms=2500){
+    return new Promise(res=>{
+      const t0=Date.now();
+      (function tick(){
+        let elx=null; try{ elx=getter(); }catch(e){ elx=null; }
+        if(elx) return res(elx);
+        if(Date.now()-t0>=ms) return res(null);
+        setTimeout(tick, 90);
+      })();
+    });
+  }
+  const consoleEl = ()=>$("#console");
+  // most-recent /api/brain request entry in the console (entries are prepended)
+  function latestBrainReq(){
+    const reqs=$$("#consoleBody .req");
+    return reqs.find(r=>{ const q=r.querySelector(".req-q"); return q && /\/api\/brain/.test(q.textContent); }) || reqs[0] || null;
+  }
+  // the console source row most likely to be the "risk" source (else first w/ a .taxi button)
+  function riskTaxiBtn(){
+    const req=latestBrainReq(); if(!req) return null;
+    const rows=$$(".csrc", req);
+    let pick=rows.find(r=>{ const b=r.querySelector(".csrc-taxibtn"); return b && /risk|insolv|gcloud|psc|ownership/i.test(r.textContent); });
+    if(!pick) pick=rows.find(r=>r.querySelector(".csrc-taxibtn"));
+    return pick ? pick.querySelector(".csrc-taxibtn") : null;
+  }
+
+  /* ---------- the steps ---------- */
+  // Each: {eyebrow,title,body, center?, action?(async, run on entry), target?(->el|null), pad?}
+  const STEPS = [
+    {
+      center:true, eyebrow:"Orbital · guided tour",
+      title:"One typed question, nine sources, zero glue.",
+      body:"One typed question. Orbital routes it across 9 independent sources — with zero integration code. Here's how, in 60 seconds.",
+    },
+    {
+      eyebrow:"The question", title:"You just type a UK company.",
+      body:"You type a UK company. Nobody told Orbital how these sources connect — it works that out from the types.",
+      target:()=>$("#globalSearch")?.closest(".search") || $("#globalSearch"),
+      action:async()=>{ try{ openAssess("PROMOAT LIMITED"); }catch(e){} },
+      pad:8,
+    },
+    {
+      eyebrow:"Live routing", title:"It plans the call graph and runs it live.",
+      body:"Watch the console: Orbital planned the call graph and is calling 9 typed sources live. That's the real TaxiQL it ran.",
+      action:async()=>{ consoleEl()?.classList.remove("collapsed"); await waitFor(()=>$("#consoleBody .req"), 3000); },
+      target:()=>consoleEl(),
+      pad:0,
+    },
+    {
+      eyebrow:"A single source", title:"This box is the ENTIRE integration.",
+      body:"This box is the ENTIRE integration for a source — about a dozen lines of Taxi. No glue code, anywhere.",
+      action:async()=>{
+        consoleEl()?.classList.remove("collapsed");
+        const btn=await waitFor(riskTaxiBtn, 4000);
+        if(btn && !btn.classList.contains("open")){ try{ btn.click(); }catch(e){} }
+      },
+      // spotlight the source row that owns the opened .taxi (fall back to the console)
+      target:()=>{ const b=riskTaxiBtn(); return (b && b.closest(".csrc")) || latestBrainReq() || consoleEl(); },
+      pad:6,
+    },
+    {
+      eyebrow:"The decision", title:"RED — a hop Orbital invented on its own.",
+      body:"The decision: RED. Its director ran 61 other companies into the ground — a hop Orbital invented on its own: name → company-number → the people.",
+      action:async()=>{ await waitFor(()=>$("#view-assess .net-wrap"), 6000); },
+      target:()=>$("#view-assess .net-wrap") || $("#view-assess .verdict"),
+      pad:8,
+    },
+    {
+      eyebrow:"Composed dossier", title:"Every card, composed from a typed source.",
+      body:"Identity, the people screened, live Companies House, ultimate ownership, sanctions, public contracts, an AI summary — every one composed from a typed source.",
+      action:async()=>{ await waitFor(()=>$("#view-assess .doss"), 6000); },
+      // prefer the full-dossier card grid (the 2nd .doss), else the first, else verdict
+      target:()=>{ const d=$$("#view-assess .doss"); return d[d.length-1] || d[0] || $("#view-assess .verdict"); },
+      pad:10,
+    },
+    {
+      eyebrow:"Why it wins", title:"Zero glue · by meaning · O(N) · auditable.",
+      body:"Zero glue · composed by meaning · O(N) not O(N²) · auditable. Add the 10th source in ~10 lines and it composes with all 9.",
+      action:async()=>{
+        consoleEl()?.classList.remove("collapsed");
+        await waitFor(()=>$("#view-assess .lin-why") || $("#consoleBody .req-why"), 5000);
+      },
+      target:()=>$("#view-assess .lin-why") || $("#consoleBody .req-why") || latestBrainReq() || consoleEl(),
+      pad:8,
+    },
+    {
+      eyebrow:"Any domain", title:"Same engine, totally different domain.",
+      body:"Same engine, totally different domain — markets, code, anything you can describe in Taxi. Here it's natural-language Ask over the very same typed sources.",
+      // Trading/Coding live in the same engine; spotlight the workspace nav (Ask is the in-app entry point)
+      target:()=>$('#nav .nav-btn[data-view="ask"]') || $("#nav") || $(".sidebar"),
+      pad:6,
+    },
+    {
+      center:true, eyebrow:"That's Taxi", final:true,
+      title:"One engine, every source, zero integration code.",
+      body:"That's Taxi — one engine, every source, zero integration code.",
+    },
+  ];
+
+  /* ---------- build / teardown overlay DOM ---------- */
+  function build(){
+    root=el("div","tour-overlay active");
+    backdrop=el("div","tour-backdrop");
+    ring=el("div","tour-ring");
+    card=el("div","tour-card");
+    root.appendChild(backdrop); root.appendChild(ring); root.appendChild(card);
+    document.body.appendChild(root);
+    // dismiss on ESC; allow clicking the dimmed backdrop to do nothing (presenter-driven)
+    onKey = (e)=>{ if(e.key==="Escape"){ e.preventDefault(); exit(); }
+      else if(e.key==="ArrowRight"){ next(); } else if(e.key==="ArrowLeft"){ back(); } };
+    document.addEventListener("keydown", onKey, true);
+    window.addEventListener("resize", scheduleReposition);
+    window.addEventListener("scroll", scheduleReposition, true);
+  }
+  let onKey=null;
+  function destroy(){
+    document.removeEventListener("keydown", onKey, true);
+    window.removeEventListener("resize", scheduleReposition);
+    window.removeEventListener("scroll", scheduleReposition, true);
+    root?.remove(); root=backdrop=ring=card=null;
+  }
+
+  /* ---------- positioning ---------- */
+  function scheduleReposition(){
+    if(!running) return;
+    cancelAnimationFrame(repositionRAF);
+    repositionRAF=requestAnimationFrame(()=>placeFor(STEPS[idx], true));
+  }
+  // place backdrop cut-out + ring + caption card for a step (reposition=true skips re-running action)
+  function placeFor(step, reposition){
+    if(!root) return;
+    const target = (!step.center && typeof step.target==="function") ? step.target() : null;
+    const rect = target ? target.getBoundingClientRect() : null;
+    const valid = rect && rect.width>4 && rect.height>4 && rect.bottom>0 && rect.top<innerHeight;
+    if(step.center || !valid){
+      // centered caption — dim everything, hide the ring
+      backdrop.classList.add("full");
+      backdrop.style.borderRadius="0";
+      ring.classList.remove("show");
+      card.classList.add("center");
+      positionCardCentered();
+      return;
+    }
+    backdrop.classList.remove("full");
+    card.classList.toggle("center", !!step.center);
+    const pad = step.pad!=null ? step.pad : 8;
+    let x=rect.left-pad, y=rect.top-pad, w=rect.width+pad*2, h=rect.height+pad*2;
+    // clamp to viewport so the cut-out never spills off-screen
+    x=Math.max(4,x); y=Math.max(4,y);
+    if(x+w>innerWidth-4) w=innerWidth-4-x;
+    if(y+h>innerHeight-4) h=innerHeight-4-y;
+    const rad = Math.min(14, Math.max(8, Math.min(w,h)/3));
+    backdrop.style.left=x+"px"; backdrop.style.top=y+"px";
+    backdrop.style.width=w+"px"; backdrop.style.height=h+"px"; backdrop.style.borderRadius=rad+"px";
+    ring.style.left=x+"px"; ring.style.top=y+"px"; ring.style.width=w+"px"; ring.style.height=h+"px";
+    ring.style.borderRadius=rad+"px"; ring.classList.add("show");
+    positionCardNear({x,y,w,h});
+  }
+  function positionCardCentered(){
+    // centered cards are absolutely-centred; the .center class supplies the
+    // translate(-50%,-50%) so the .show transition only fades opacity.
+    card.classList.add("center");
+    card.style.left="50%"; card.style.top="50%"; card.style.transform="";
+    requestAnimationFrame(()=>card.classList.add("show"));
+  }
+  function positionCardNear(box){
+    card.classList.remove("center");
+    card.style.transform="";              // let CSS .show handle the slide
+    // measure card size (it may be mid-transition; use offset box)
+    const cw=card.offsetWidth||360, ch=card.offsetHeight||180, gap=14, M=12;
+    const spaceBelow=innerHeight-(box.y+box.h), spaceAbove=box.y;
+    const spaceRight=innerWidth-(box.x+box.w), spaceLeft=box.x;
+    let left, top;
+    if(spaceBelow>=ch+gap || spaceBelow>=spaceAbove){
+      // below the target, horizontally aligned to it
+      top=Math.min(box.y+box.h+gap, innerHeight-ch-M);
+      left=box.x;
+    } else if(spaceAbove>=ch+gap){
+      top=Math.max(M, box.y-ch-gap);
+      left=box.x;
+    } else if(spaceRight>=cw+gap){
+      left=box.x+box.w+gap; top=box.y;
+    } else if(spaceLeft>=cw+gap){
+      left=box.x-cw-gap; top=box.y;
+    } else {
+      // fallback: pin near the bottom-centre
+      left=(innerWidth-cw)/2; top=innerHeight-ch-M;
+    }
+    left=Math.max(M, Math.min(left, innerWidth-cw-M));
+    top=Math.max(M, Math.min(top, innerHeight-ch-M));
+    card.style.left=left+"px"; card.style.top=top+"px";
+    requestAnimationFrame(()=>card.classList.add("show"));
+  }
+
+  /* ---------- render the caption card for a step ---------- */
+  function renderCard(step){
+    const n=STEPS.length;
+    const dots=STEPS.map((_,i)=>`<i class="${i===idx?"on":""}"></i>`).join("");
+    const backBtn = idx>0 ? `<button class="tour-btn ghost" data-act="back">${ICBACK} Back</button>` : "";
+    let actions;
+    if(step.final){
+      actions = `<button class="tour-btn" data-act="restart">${ICRE} Restart tour</button>`+
+                `<button class="tour-btn primary" data-act="explore">Explore it yourself</button>`;
+    } else {
+      actions = backBtn +
+        `<span class="tour-foot-sp"></span>`+
+        `<button class="tour-btn primary" data-act="next">${idx===n-1?"Finish":"Next"} ${ICARR}</button>`;
+    }
+    const counter = step.final
+      ? `<span class="tour-count">Done · ${n} of ${n}</span><span class="tour-dots">${dots}</span>`
+      : `<span class="tour-count">${idx+1} of ${n}</span><span class="tour-dots">${dots}</span>`;
+    card.classList.toggle("center", !!step.center);
+    card.innerHTML =
+      `<button class="tour-skip" data-act="skip" title="Exit tour (Esc)">${ICX}</button>`+
+      `<div class="tour-card-top"><span class="tour-spark"></span><span class="tour-eyebrow">${esc(step.eyebrow||"Guided tour")}</span></div>`+
+      `<div class="tour-card-body"><h4>${esc(step.title||"")}</h4><p>${esc(step.body||"")}</p></div>`+
+      `<div class="tour-card-foot">${step.final ? `${counter}${actions}` : `${counter}${actions}`}</div>`;
+    card.querySelectorAll("[data-act]").forEach(b=>{
+      b.addEventListener("click",()=>{
+        const a=b.dataset.act;
+        if(a==="next") next(); else if(a==="back") back();
+        else if(a==="skip"||a==="explore") exit();
+        else if(a==="restart") restart();
+      });
+    });
+  }
+
+  /* ---------- step navigation ---------- */
+  async function goTo(i){
+    if(!running) return;
+    idx=Math.max(0, Math.min(STEPS.length-1, i));
+    const step=STEPS[idx];
+    // hide the card during the transition so it doesn't jump
+    card.classList.remove("show");
+    renderCard(step);
+    // run the step's app action (open dossier / expand console / open .taxi)
+    if(typeof step.action==="function"){ try{ await step.action(); }catch(e){} }
+    if(!running) return;                 // user may have exited mid-action
+    // scroll the target into view, then position the spotlight after layout settles
+    const target = (!step.center && typeof step.target==="function") ? step.target() : null;
+    if(target && target.scrollIntoView){
+      try{ target.scrollIntoView({block:"center", inline:"nearest", behavior:"smooth"}); }catch(e){ try{ target.scrollIntoView(); }catch(_){} }
+    }
+    setTimeout(()=>placeFor(step,false), target ? 240 : 0);
+  }
+  function next(){ if(idx>=STEPS.length-1){ exit(); } else { goTo(idx+1); } }
+  function back(){ if(idx>0) goTo(idx-1); }
+
+  /* ---------- lifecycle ---------- */
+  function captureState(){
+    saved={
+      view: state.view, current: state.current,
+      scrollY: window.scrollY||window.pageYOffset||0,
+      consoleCollapsed: consoleEl()?.classList.contains("collapsed") ?? false,
+    };
+  }
+  function restoreState(){
+    if(!saved) return;
+    const con=consoleEl();
+    if(con) con.classList.toggle("collapsed", !!saved.consoleCollapsed);  // restore console open/closed
+    try{ window.scrollTo({top:saved.scrollY, behavior:"instant"}); }catch(e){ window.scrollTo(0,saved.scrollY); }
+    saved=null;
+  }
+  function start(){
+    if(running) return;
+    dismissPill();                       // a started tour also dismisses the offer pill
+    running=true; idx=0;
+    captureState();
+    build();
+    goTo(0);
+  }
+  function exit(){
+    if(!running) return;
+    running=false;
+    cancelAnimationFrame(repositionRAF);
+    destroy();
+    restoreState();
+  }
+  function restart(){
+    // restart without re-capturing (keep the original pre-tour baseline)
+    if(!running){ start(); return; }
+    idx=0; goTo(0);
+  }
+
+  /* ---------- first-load offer pill ---------- */
+  let pillEl=null;
+  function dismissPill(remember){
+    if(remember) save(LS_PILL, true);
+    pillEl?.remove(); pillEl=null;
+  }
+  function maybeOfferPill(){
+    if(load(LS_PILL,false)) return;      // user dismissed it before — respect that
+    pillEl=el("div","tour-pill");
+    pillEl.innerHTML =
+      `<span class="tp-spark"></span>`+
+      `<span>New here? Take the 60-second tour</span>`+
+      `<button class="tp-go" type="button"><span class="tri">▶</span> Start</button>`+
+      `<button class="tp-x" type="button" title="Dismiss">${ICX}</button>`;
+    pillEl.querySelector(".tp-go").addEventListener("click",()=>start());
+    pillEl.querySelector(".tp-x").addEventListener("click",()=>dismissPill(true));
+    document.body.appendChild(pillEl);
+  }
+
+  function wire(){
+    $("#tourBtn")?.addEventListener("click",()=>start());
+    // offer the pill shortly after load (lets the portfolio paint first)
+    setTimeout(maybeOfferPill, 900);
+  }
+  return { start, exit, restart, wire };
+})();
+
 Console.wire();
 updateCounts();
 setView("portfolio");
+Tour.wire();
 </script>
 </body>
 </html>
