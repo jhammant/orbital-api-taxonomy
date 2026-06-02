@@ -1,0 +1,2102 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Orbital Risk — Counterparty Intelligence</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --accent:#3538CD; --accent-weak:#EEF0FF; --accent-line:#D9DCFB; --accent-deep:#2A2C9E;
+  --red:#D92D20; --amber:#F79009; --green:#079455;
+  --red-bg:#FEF3F2; --amber-bg:#FFFAEB; --green-bg:#ECFDF3;
+  --red-line:#FECDCA; --amber-line:#FEDF89; --green-line:#A6F4C5;
+  --ink:#101828; --ink-2:#475467; --ink-3:#667085; --ink-4:#98A2B3;
+  --line:#EAECF0; --line-2:#F2F4F7; --surface:#FFFFFF; --canvas:#F7F8FA;
+  --shadow-sm:0 1px 2px rgba(16,24,40,.05);
+  --shadow:0 1px 3px rgba(16,24,40,.06),0 1px 2px rgba(16,24,40,.04);
+  --shadow-lg:0 12px 32px -8px rgba(16,24,40,.14),0 4px 8px -4px rgba(16,24,40,.06);
+  --r:10px; --r-sm:8px; --r-lg:14px;
+  --mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+  --sans:"Hanken Grotesk",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  font-family:var(--sans); color:var(--ink); background:var(--canvas);
+  -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale;
+  font-size:14px; line-height:1.5; letter-spacing:-0.006em;
+}
+.tnum{font-variant-numeric:tabular-nums; font-feature-settings:"tnum" 1}
+.mono{font-family:var(--mono); font-variant-numeric:tabular-nums}
+button{font-family:inherit; cursor:pointer}
+a{color:var(--accent); text-decoration:none}
+a:hover{text-decoration:underline}
+::selection{background:var(--accent-weak)}
+.lbl{font-family:var(--mono); font-size:10.5px; font-weight:500; letter-spacing:.10em; text-transform:uppercase; color:var(--ink-4)}
+
+/* ---------- App shell ---------- */
+.app{display:grid; grid-template-columns:236px 1fr; min-height:100vh}
+.sidebar{
+  background:var(--surface); border-right:1px solid var(--line);
+  display:flex; flex-direction:column; position:sticky; top:0; height:100vh;
+}
+.brand{display:flex; align-items:center; gap:10px; padding:20px 20px 18px}
+.mark{width:28px; height:28px; flex:none}
+.brand-name{font-weight:700; font-size:15px; letter-spacing:-0.02em}
+.brand-sub{font-family:var(--mono); font-size:9px; letter-spacing:.16em; color:var(--ink-4); text-transform:uppercase; margin-top:1px}
+.nav{padding:6px 12px; display:flex; flex-direction:column; gap:2px}
+.nav-h{padding:14px 8px 6px; }
+.nav-btn{
+  display:flex; align-items:center; gap:11px; width:100%; text-align:left;
+  background:none; border:0; padding:8px 10px; border-radius:var(--r-sm);
+  color:var(--ink-2); font-size:13.5px; font-weight:500; letter-spacing:-0.01em; transition:.12s;
+}
+.nav-btn svg{width:17px; height:17px; flex:none; color:var(--ink-4); transition:.12s}
+.nav-btn:hover{background:var(--line-2); color:var(--ink)}
+.nav-btn.active{background:var(--accent-weak); color:var(--accent-deep); font-weight:600}
+.nav-btn.active svg{color:var(--accent)}
+.nav-count{margin-left:auto; font-family:var(--mono); font-size:11px; color:var(--ink-4); background:var(--canvas); border:1px solid var(--line); padding:0 6px; border-radius:20px; min-width:22px; text-align:center}
+.nav-btn.active .nav-count{color:var(--accent); background:#fff; border-color:var(--accent-line)}
+.side-foot{margin-top:auto; padding:14px 16px; border-top:1px solid var(--line)}
+.plan{display:flex; align-items:center; gap:10px}
+.plan-dot{width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 0 3px var(--green-bg)}
+.plan-txt{font-size:11.5px; color:var(--ink-3)}
+.plan-txt b{display:block; color:var(--ink-2); font-weight:600; font-size:12px; letter-spacing:-0.01em}
+
+.main{display:flex; flex-direction:column; min-width:0; padding-bottom:44px}  /* clear the docked console bar */
+
+/* ---------- Topbar ---------- */
+.topbar{
+  position:sticky; top:0; z-index:30; background:rgba(255,255,255,.85); backdrop-filter:saturate(180%) blur(10px);
+  border-bottom:1px solid var(--line); display:flex; align-items:center; gap:14px; padding:11px 28px;
+}
+.search{position:relative; flex:1; max-width:560px}
+.search svg{position:absolute; left:12px; top:50%; transform:translateY(-50%); width:16px; height:16px; color:var(--ink-4)}
+.search input{
+  width:100%; border:1px solid var(--line); background:var(--canvas); border-radius:var(--r-sm);
+  padding:9px 12px 9px 36px; font-family:inherit; font-size:13.5px; color:var(--ink); letter-spacing:-0.01em; transition:.14s;
+}
+.search input::placeholder{color:var(--ink-4)}
+.search input:focus{outline:none; border-color:var(--accent); background:#fff; box-shadow:0 0 0 3px var(--accent-weak)}
+.search kbd{position:absolute; right:10px; top:50%; transform:translateY(-50%); font-family:var(--mono); font-size:10px; color:var(--ink-4); border:1px solid var(--line); border-bottom-width:2px; border-radius:5px; padding:1px 5px; background:#fff}
+.top-r{display:flex; align-items:center; gap:12px; margin-left:auto}
+.btn{
+  display:inline-flex; align-items:center; gap:7px; border:1px solid var(--line); background:#fff; color:var(--ink-2);
+  font-size:13px; font-weight:600; letter-spacing:-0.01em; padding:8px 13px; border-radius:var(--r-sm); transition:.14s; box-shadow:var(--shadow-sm);
+}
+.btn:hover{border-color:#D0D5DD; color:var(--ink); background:#fcfcfd}
+.btn svg{width:15px; height:15px}
+.btn-primary{background:var(--accent); border-color:var(--accent); color:#fff}
+.btn-primary:hover{background:var(--accent-deep); border-color:var(--accent-deep); color:#fff}
+.avatar{width:34px; height:34px; border-radius:50%; background:linear-gradient(135deg,#4B4EE7,#2A2C9E); color:#fff; display:grid; place-items:center; font-size:12.5px; font-weight:700; letter-spacing:.02em; flex:none; box-shadow:var(--shadow-sm); cursor:pointer}
+
+/* ---------- Content ---------- */
+.view{padding:30px 28px 64px; max-width:1180px; margin:0 auto; width:100%}
+.page-head{margin-bottom:22px}
+.page-eyebrow{font-family:var(--mono); font-size:10.5px; letter-spacing:.14em; text-transform:uppercase; color:var(--accent); font-weight:500}
+.page-title{font-size:24px; font-weight:700; letter-spacing:-0.03em; margin:5px 0 3px}
+.page-sub{color:var(--ink-3); font-size:13.5px; max-width:680px}
+.row-between{display:flex; align-items:flex-end; justify-content:space-between; gap:16px; flex-wrap:wrap}
+
+/* cards */
+.card{background:var(--surface); border:1px solid var(--line); border-radius:var(--r); box-shadow:var(--shadow)}
+.card-pad{padding:18px 20px}
+
+/* ---------- Band pill / chips ---------- */
+.pill{display:inline-flex; align-items:center; gap:6px; font-family:var(--mono); font-size:10.5px; font-weight:600; letter-spacing:.08em; text-transform:uppercase; padding:3px 9px 3px 8px; border-radius:20px; border:1px solid; white-space:nowrap}
+.pill .dot{width:6px; height:6px; border-radius:50%}
+.pill.RED{color:#912018; background:var(--red-bg); border-color:var(--red-line)} .pill.RED .dot{background:var(--red)}
+.pill.AMBER{color:#93370D; background:var(--amber-bg); border-color:var(--amber-line)} .pill.AMBER .dot{background:var(--amber)}
+.pill.GREEN{color:#067647; background:var(--green-bg); border-color:var(--green-line)} .pill.GREEN .dot{background:var(--green)}
+.pill.NEU{color:var(--ink-2); background:var(--canvas); border-color:var(--line)} .pill.NEU .dot{background:var(--ink-4)}
+.tag{display:inline-flex; align-items:center; gap:5px; font-size:11.5px; font-weight:500; color:var(--ink-2); background:var(--canvas); border:1px solid var(--line); padding:2px 8px; border-radius:6px}
+
+/* ---------- Summary stat strip ---------- */
+.stats{display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-bottom:18px}
+.stat{background:var(--surface); border:1px solid var(--line); border-radius:var(--r); padding:14px 16px; box-shadow:var(--shadow); position:relative; overflow:hidden}
+.stat::before{content:""; position:absolute; left:0; top:0; bottom:0; width:3px; background:var(--ink-4)}
+.stat.s-red::before{background:var(--red)} .stat.s-amber::before{background:var(--amber)} .stat.s-green::before{background:var(--green)} .stat.s-tot::before{background:var(--accent)}
+.stat .k{display:flex; align-items:center; justify-content:space-between; min-height:18px}
+.stat .k > svg{width:15px; height:15px; color:var(--ink-4); flex:none}
+.stat .n{font-family:var(--mono); font-size:28px; font-weight:600; letter-spacing:-0.02em; line-height:1; margin-top:12px}
+.stat.s-red .n{color:var(--red)} .stat.s-amber .n{color:#B54708} .stat.s-green .n{color:var(--green)}
+
+/* ---------- Portfolio table ---------- */
+.tbl-head{display:flex; align-items:center; justify-content:space-between; padding:14px 18px; border-bottom:1px solid var(--line)}
+.tbl-head h3{margin:0; font-size:14px; font-weight:700; letter-spacing:-0.02em}
+.tbl-head .meta{font-size:12px; color:var(--ink-4)}
+table.pf{width:100%; border-collapse:collapse}
+.pf thead th{
+  text-align:left; font-family:var(--mono); font-size:10px; font-weight:500; letter-spacing:.10em; text-transform:uppercase; color:var(--ink-4);
+  padding:9px 16px; border-bottom:1px solid var(--line); background:var(--canvas); white-space:nowrap;
+}
+.pf thead th.r{text-align:right}
+.pf tbody td{padding:14px 16px; border-bottom:1px solid var(--line-2); vertical-align:middle}
+.pf tbody tr{cursor:pointer; transition:background .12s}
+.pf tbody tr:hover{background:#FCFCFD}
+.pf tbody tr:last-child td{border-bottom:0}
+.co-name{font-weight:600; font-size:13.5px; letter-spacing:-0.01em; display:flex; align-items:center; gap:9px}
+.co-ava{width:26px; height:26px; border-radius:7px; flex:none; display:grid; place-items:center; font-size:10.5px; font-weight:700; font-family:var(--mono); color:#fff; letter-spacing:-0.02em}
+.co-meta{font-family:var(--mono); font-size:11px; color:var(--ink-4); margin-top:2px; padding-left:35px}
+.score-cell{display:inline-flex; align-items:center; gap:9px}
+.score-bar{width:54px; height:5px; border-radius:3px; background:var(--line); overflow:hidden}
+.score-bar i{display:block; height:100%; border-radius:3px}
+.score-num{font-family:var(--mono); font-size:13px; font-weight:600; min-width:30px; text-align:right}
+.flag-mini{display:flex; align-items:center; gap:7px; font-size:12.5px; color:var(--ink-2); max-width:330px}
+.sev-dot{width:7px;height:7px;border-radius:2px;flex:none}
+.sev-dot.high{background:var(--red)} .sev-dot.med{background:var(--amber)} .sev-dot.low{background:var(--ink-4)}
+.flag-mini span{overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+.checked{font-family:var(--mono); font-size:11.5px; color:var(--ink-4); white-space:nowrap}
+.iconbtn{border:1px solid transparent; background:none; width:30px; height:30px; border-radius:7px; display:grid; place-items:center; color:var(--ink-4); transition:.12s}
+.iconbtn:hover{background:var(--red-bg); color:var(--red); border-color:var(--red-line)}
+.iconbtn svg{width:15px; height:15px}
+.iconbtn.mon:hover{background:var(--accent-weak); color:var(--accent); border-color:var(--accent-line)}
+
+/* skeleton */
+.sk{background:linear-gradient(90deg,#EEF0F3 25%,#F5F6F8 37%,#EEF0F3 63%); background-size:400% 100%; animation:sh 1.4s ease infinite; border-radius:5px; height:11px; display:inline-block}
+@keyframes sh{0%{background-position:100% 0}100%{background-position:0 0}}
+
+/* empty */
+.empty{text-align:center; padding:54px 20px; color:var(--ink-3)}
+.empty svg{width:38px; height:38px; color:var(--ink-4); margin-bottom:12px}
+.empty h4{margin:0 0 5px; color:var(--ink); font-size:15px; font-weight:700}
+
+/* ---------- Assess ---------- */
+.assess-grid{display:grid; grid-template-columns:1fr; gap:18px}
+.dossier-head{display:flex; align-items:flex-start; justify-content:space-between; gap:18px; flex-wrap:wrap}
+.dh-name{font-size:23px; font-weight:700; letter-spacing:-0.03em; display:flex; align-items:center; gap:12px}
+.dh-meta{display:flex; flex-wrap:wrap; gap:18px; margin-top:12px}
+.kv{display:flex; flex-direction:column; gap:2px}
+.kv .lbl{margin-bottom:1px}
+.kv b{font-family:var(--mono); font-size:13px; font-weight:500; color:var(--ink); letter-spacing:-0.01em}
+.kv.muted b{color:var(--ink-4)}
+
+/* verdict */
+.verdict{display:grid; grid-template-columns:auto 1fr; gap:26px; align-items:center; padding:22px 24px; border-radius:var(--r-lg); border:1px solid; position:relative; overflow:hidden}
+.verdict.RED{background:linear-gradient(180deg,#FFF6F5,#fff); border-color:var(--red-line)}
+.verdict.AMBER{background:linear-gradient(180deg,#FFFBF0,#fff); border-color:var(--amber-line)}
+.verdict.GREEN{background:linear-gradient(180deg,#F4FDF8,#fff); border-color:var(--green-line)}
+.gauge{position:relative; width:128px; height:128px; flex:none}
+.gauge .lab{position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center}
+.gauge .num{font-family:var(--mono); font-size:34px; font-weight:600; letter-spacing:-0.03em; line-height:1}
+.gauge .den{font-family:var(--mono); font-size:11px; color:var(--ink-4); margin-top:2px}
+.verdict-body{min-width:0}
+.verdict-band{font-family:var(--mono); font-size:12px; font-weight:600; letter-spacing:.12em; text-transform:uppercase; display:inline-flex; align-items:center; gap:8px}
+.verdict.RED .verdict-band{color:var(--red)} .verdict.AMBER .verdict-band{color:#B54708} .verdict.GREEN .verdict-band{color:var(--green)}
+.verdict-sentence{font-size:17px; font-weight:600; letter-spacing:-0.02em; line-height:1.4; margin:9px 0 12px; color:var(--ink)}
+.reco{display:flex; align-items:flex-start; gap:9px; padding:11px 13px; border-radius:var(--r-sm); background:rgba(255,255,255,.7); border:1px solid var(--line); font-size:13px}
+.reco svg{width:16px;height:16px;flex:none;margin-top:1px}
+.reco b{font-weight:700}
+.verdict.RED .reco svg{color:var(--red)} .verdict.AMBER .reco svg{color:var(--amber)} .verdict.GREEN .reco svg{color:var(--green)}
+
+/* section */
+.section-h{display:flex; align-items:center; gap:10px; margin-bottom:13px}
+.section-h h3{margin:0; font-size:13px; font-weight:700; letter-spacing:.02em; text-transform:uppercase; font-family:var(--mono)}
+.section-h .ln{flex:1; height:1px; background:var(--line)}
+.section-h .ct{font-family:var(--mono); font-size:11px; color:var(--ink-4)}
+
+/* flags */
+.flags{display:grid; grid-template-columns:1fr 1fr; gap:12px}
+.flag{border:1px solid var(--line); border-left-width:3px; border-radius:var(--r-sm); padding:13px 15px; background:#fff}
+.flag.high{border-left-color:var(--red); background:linear-gradient(90deg,var(--red-bg),#fff 60%)}
+.flag.med{border-left-color:var(--amber); background:linear-gradient(90deg,var(--amber-bg),#fff 60%)}
+.flag.low{border-left-color:var(--ink-4)}
+.flag .ft{display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:5px}
+.flag .fl{font-weight:600; font-size:13.5px; letter-spacing:-0.01em}
+.flag .sev{font-family:var(--mono); font-size:9.5px; font-weight:600; letter-spacing:.08em; text-transform:uppercase; padding:2px 6px; border-radius:5px}
+.flag.high .sev{color:#912018;background:#FEE4E2} .flag.med .sev{color:#93370D;background:#FEF0C7} .flag.low .sev{color:var(--ink-3);background:var(--line-2)}
+.flag .fd{font-size:12.5px; color:var(--ink-2); line-height:1.5}
+
+/* network hero */
+.net-wrap{position:relative; background:
+  radial-gradient(1100px 460px at 50% 38%, #fcfcfe 0%, var(--surface) 70%);
+  border:1px solid var(--line); border-radius:var(--r-lg); overflow:hidden; box-shadow:var(--shadow)}
+.net-top{display:flex; align-items:center; justify-content:space-between; padding:14px 18px; border-bottom:1px solid var(--line)}
+.net-top h3{margin:0; font-size:14px; font-weight:700; letter-spacing:-0.02em; display:flex; align-items:center; gap:9px}
+.net-svg{display:block; width:100%; height:auto}
+.legend{display:flex; gap:18px; padding:12px 18px; border-top:1px solid var(--line); flex-wrap:wrap; background:var(--canvas)}
+.lg{display:flex; align-items:center; gap:8px; font-size:12px; color:var(--ink-2)}
+.lg .sw{width:13px; height:13px; border-radius:50%; border:2px solid #fff; box-shadow:0 0 0 1px var(--line)}
+.lg .sw.sq{border-radius:4px}
+.net-edge{stroke:#D0D5DD; fill:none}
+.net-edge.fail{stroke:var(--red-line)}
+.net-node-label{font-family:var(--sans); font-weight:500; letter-spacing:-0.01em; fill:var(--ink-2)}
+.net-hover{font-family:var(--mono)}
+
+/* dossier two-col */
+.doss{display:grid; grid-template-columns:1fr 1fr; gap:18px}
+.panel-title{display:flex; align-items:center; gap:8px; font-family:var(--mono); font-size:11px; font-weight:600; letter-spacing:.1em; text-transform:uppercase; color:var(--ink-3); margin-bottom:13px}
+.panel-title svg{width:15px; height:15px; color:var(--ink-4)}
+.def{display:grid; grid-template-columns:auto 1fr; gap:8px 16px; align-items:baseline}
+.def dt{font-family:var(--mono); font-size:11px; color:var(--ink-4); text-transform:uppercase; letter-spacing:.06em; white-space:nowrap}
+.def dd{margin:0; font-size:13px; color:var(--ink); text-align:right; font-family:var(--mono); letter-spacing:-0.01em}
+.people-list{display:flex; flex-direction:column; gap:10px}
+.person{display:flex; align-items:flex-start; gap:11px; padding:11px 0; border-bottom:1px solid var(--line-2)}
+.person:last-child{border-bottom:0; padding-bottom:0}
+.person:first-child{padding-top:0}
+.p-ava{width:32px;height:32px;border-radius:50%;background:var(--accent-weak);color:var(--accent-deep);display:grid;place-items:center;font-weight:700;font-size:12px;flex:none}
+.p-name{font-weight:600; font-size:13.5px; letter-spacing:-0.01em}
+.p-ctrl{display:flex; flex-wrap:wrap; gap:5px; margin-top:5px}
+.ctrl-chip{font-family:var(--mono); font-size:10px; color:var(--ink-3); background:var(--canvas); border:1px solid var(--line); padding:1px 6px; border-radius:5px}
+
+/* sanctions */
+.sanc-banner{display:flex; align-items:center; gap:12px; padding:13px 15px; border-radius:var(--r-sm); border:1px solid; margin-bottom:13px}
+.sanc-banner.clear{background:var(--green-bg); border-color:var(--green-line)}
+.sanc-banner.hit{background:var(--red-bg); border-color:var(--red-line)}
+.sanc-ico{width:34px; height:34px; border-radius:50%; display:grid; place-items:center; flex:none}
+.sanc-banner.clear .sanc-ico{background:#fff; color:var(--green)} .sanc-banner.hit .sanc-ico{background:#fff; color:var(--red)}
+.sanc-ico svg{width:18px;height:18px}
+.sanc-banner b{font-size:14px; font-weight:700; display:block}
+.sanc-banner .sub{font-size:12px; color:var(--ink-2)}
+.lists{display:flex; flex-direction:column; gap:7px}
+.list-row{display:flex; align-items:center; gap:9px; font-size:12.5px; color:var(--ink-2); font-family:var(--mono)}
+.list-row svg{width:14px;height:14px;color:var(--green); flex:none}
+.hit-row{display:flex; justify-content:space-between; gap:10px; padding:9px 11px; border:1px solid var(--red-line); background:var(--red-bg); border-radius:7px; margin-bottom:7px}
+.hit-row .hn{font-weight:600; font-size:13px}
+.hit-row .hm{font-family:var(--mono); font-size:11px; color:#912018}
+
+/* adverse media */
+.media-list{display:flex; flex-direction:column}
+.media-item{display:flex; gap:12px; padding:12px 0; border-bottom:1px solid var(--line-2)}
+.media-item:last-child{border-bottom:0}
+.media-item:first-child{padding-top:0}
+.chan{width:30px; height:30px; border-radius:7px; flex:none; display:grid; place-items:center; font-family:var(--mono); font-size:9px; font-weight:600; text-transform:uppercase; letter-spacing:.02em}
+.chan.news{background:var(--accent-weak); color:var(--accent-deep)}
+.chan.hackernews{background:#FFF4ED; color:#C4320A}
+.chan.reddit{background:#FFF1F0; color:#D92D20}
+.chan.bluesky{background:#EFF8FF; color:#175CD3}
+.media-b{min-width:0; flex:1}
+.media-t{font-size:13px; font-weight:500; letter-spacing:-0.01em; color:var(--ink); line-height:1.45; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden}
+a.media-t:hover{color:var(--accent)}
+.media-m{display:flex; align-items:center; gap:7px; margin-top:5px; font-family:var(--mono); font-size:10.5px; color:var(--ink-4); white-space:nowrap; overflow:hidden}
+.media-m .src{color:var(--ink-3); overflow:hidden; text-overflow:ellipsis; max-width:160px}
+.dotsep{width:2.5px;height:2.5px;border-radius:50%;background:var(--ink-4)}
+
+/* lineage */
+.lineage{background:linear-gradient(180deg,#FAFAFF,#fff); border:1px solid var(--accent-line); border-radius:var(--r-lg); overflow:hidden}
+.lin-top{display:flex; align-items:center; justify-content:space-between; gap:14px; padding:16px 20px; border-bottom:1px solid var(--accent-line); flex-wrap:wrap}
+.lin-badge{display:inline-flex; align-items:center; gap:8px; font-family:var(--mono); font-size:11px; font-weight:600; letter-spacing:.06em; text-transform:uppercase; color:var(--accent-deep); background:#fff; border:1px solid var(--accent-line); padding:4px 10px; border-radius:20px}
+.lin-badge .spark{width:8px;height:8px;border-radius:50%;background:var(--accent);box-shadow:0 0 0 3px var(--accent-weak)}
+.lin-stats{display:flex; gap:22px}
+.lin-stat .v{font-family:var(--mono); font-size:18px; font-weight:600; letter-spacing:-0.02em; color:var(--ink)}
+.lin-stat .v.acc{color:var(--accent)}
+.lin-stat .k{font-family:var(--mono); font-size:9.5px; text-transform:uppercase; letter-spacing:.1em; color:var(--ink-4)}
+.src-list{padding:6px 0}
+.src{display:grid; grid-template-columns:22px 1fr auto; gap:13px; align-items:center; padding:12px 20px; border-bottom:1px solid var(--line-2)}
+.src:last-child{border-bottom:0}
+.src-num{width:22px;height:22px;border-radius:6px;background:var(--accent-weak);color:var(--accent-deep);display:grid;place-items:center;font-family:var(--mono);font-size:11px;font-weight:600}
+.src-name{font-weight:600; font-size:13.5px; letter-spacing:-0.01em; display:flex; align-items:center; gap:8px; flex-wrap:wrap}
+.src-type{font-family:var(--mono); font-size:10px; color:var(--accent-deep); background:var(--accent-weak); padding:1px 6px; border-radius:5px}
+.src-via{font-family:var(--mono); font-size:11px; color:var(--ink-3); margin-top:4px; display:flex; align-items:center; gap:5px; flex-wrap:wrap}
+.via-hop{display:inline-flex;align-items:center;gap:5px}
+.via-arrow{color:var(--accent); font-weight:600}
+.src-rows{font-family:var(--mono); font-size:12px; text-align:right; white-space:nowrap}
+.src-rows b{color:var(--ink); font-weight:600} .src-rows span{color:var(--ink-4); display:block; font-size:9.5px; text-transform:uppercase; letter-spacing:.08em}
+.invented{margin:6px 20px 18px; padding:13px 15px; border-radius:var(--r-sm); background:#fff; border:1px dashed var(--accent-line); display:flex; gap:11px; align-items:flex-start}
+.invented svg{width:18px;height:18px;color:var(--accent);flex:none;margin-top:1px}
+.invented .it{font-family:var(--mono); font-size:9.5px; letter-spacing:.1em; text-transform:uppercase; color:var(--accent); font-weight:600; margin-bottom:3px}
+.invented .ix{font-size:13px; color:var(--ink); line-height:1.5}
+
+/* lineage — upgraded "behind the scenes" (light) */
+.lin-intro{padding:16px 20px 4px}
+.lin-intro .h{font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);font-family:var(--mono);margin-bottom:9px;display:flex;align-items:center;gap:8px}
+.lin-intro .h svg{width:14px;height:14px;color:var(--accent)}
+/* the FULL TaxiQL that ran — reuse the dark code aesthetic from Ask */
+.lin-taxiql{margin:0 20px 4px;border:1px solid var(--line);border-radius:var(--r-sm);overflow:hidden}
+.lin-taxiql .top{display:flex;align-items:center;justify-content:space-between;padding:8px 13px;background:#0E1326}
+.lin-taxiql .top .lbl{color:#8E94F0}
+.lin-taxiql .top .dots{display:flex;gap:5px}.lin-taxiql .top .dots i{width:8px;height:8px;border-radius:50%;background:#2A2F45}
+.lin-taxiql pre{margin:0;padding:14px 16px;background:#0B0F1E;color:#D6DAF5;font-family:var(--mono);font-size:12.5px;line-height:1.65;overflow-x:auto;white-space:pre}
+.lin-taxiql pre .kw{color:#8E94F0;font-weight:600}.lin-taxiql pre .ty{color:#7DD3A8}.lin-taxiql pre .st{color:#F4C77B}.lin-taxiql pre .pn{color:#9AA3B8}
+.lin-sec{padding:14px 20px 2px}
+.lin-sec .h{font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);font-family:var(--mono);margin-bottom:11px}
+/* a clear source row with expandable full .taxi */
+.lsrc{border:1px solid var(--line);border-radius:var(--r-sm);background:#fff;margin-bottom:10px;overflow:hidden;transition:border-color .12s}
+.lsrc:last-child{margin-bottom:0}
+.lsrc.open{border-color:var(--accent-line)}
+.lsrc-head{display:grid;grid-template-columns:24px 1fr auto;gap:13px;align-items:center;padding:12px 14px}
+.lsrc-num{width:24px;height:24px;border-radius:6px;background:var(--accent-weak);color:var(--accent-deep);display:grid;place-items:center;font-family:var(--mono);font-size:11px;font-weight:600}
+.lsrc-body{min-width:0}
+.lsrc-title{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:13.5px;letter-spacing:-.01em}
+.lsrc-type{font-family:var(--mono);font-size:11.5px;font-weight:600;color:var(--accent-deep);background:var(--accent-weak);border:1px solid var(--accent-line);padding:1px 7px;border-radius:5px}
+.lsrc-arrow{color:var(--ink-4);font-family:var(--mono)}
+.lsrc-file{font-family:var(--mono);font-size:12px;font-weight:600;color:var(--ink)}
+.lsrc-op{font-family:var(--mono);font-size:11.5px;color:var(--ink-3)}
+.lsrc-dot{width:2.5px;height:2.5px;border-radius:50%;background:var(--ink-4);flex:none}
+.lsrc-ep{display:flex;align-items:center;gap:7px;font-family:var(--mono);font-size:11px;color:var(--ink-3);margin-top:6px;line-height:1.4}
+.lsrc-ep svg{width:13px;height:13px;color:var(--ink-4);flex:none}
+.lsrc-ep .m{color:#B54708}
+.lsrc-rows{font-family:var(--mono);font-size:12px;text-align:right;white-space:nowrap}
+.lsrc-rows b{color:var(--ink);font-weight:600}.lsrc-rows span{color:var(--ink-4);display:block;font-size:9.5px;text-transform:uppercase;letter-spacing:.08em}
+.lsrc-toggle{display:inline-flex;align-items:center;gap:6px;font-family:var(--mono);font-size:11px;font-weight:600;color:var(--accent);background:#fff;border:1px solid var(--accent-line);border-radius:6px;padding:4px 10px;margin:0 14px 12px 51px;transition:.12s}
+.lsrc-toggle:hover{background:var(--accent-weak)}
+.lsrc-toggle svg{width:12px;height:12px;transition:transform .15s}
+.lsrc-toggle.open svg{transform:rotate(90deg)}
+.lsrc-taxi{margin:0 14px 12px 51px;border:1px solid var(--line);border-radius:var(--r-sm);background:#0B0F1E;max-height:300px;overflow:auto}
+.lsrc-taxi pre{margin:0;padding:13px 15px;font-family:var(--mono);font-size:11.5px;line-height:1.6;color:#C7CCF0;white-space:pre;tab-size:2}
+/* "Why this matters" — prominent */
+.lin-why{margin:14px 20px 18px;border:1px solid var(--accent-line);border-radius:var(--r);background:linear-gradient(180deg,#F4F5FF,#fff);padding:16px 18px}
+.lin-why .wh{display:flex;align-items:center;gap:9px;font-size:13px;font-weight:700;letter-spacing:-.01em;color:var(--accent-deep);margin-bottom:13px}
+.lin-why .wh svg{width:17px;height:17px;color:var(--accent)}
+.lin-why ul{margin:0;padding:0;list-style:none;display:grid;grid-template-columns:1fr 1fr;gap:12px 18px}
+.lin-why li{display:flex;gap:10px;align-items:flex-start;font-size:13px;color:var(--ink-2);line-height:1.5}
+.lin-why li .ck{width:20px;height:20px;border-radius:6px;background:#fff;border:1px solid var(--accent-line);display:grid;place-items:center;flex:none;margin-top:1px}
+.lin-why li .ck svg{width:12px;height:12px;color:var(--accent)}
+.lin-why li b{color:var(--ink);font-weight:700;letter-spacing:-.01em}
+@media (max-width:760px){ .lin-why ul{grid-template-columns:1fr} }
+
+/* assembling state */
+.assembling{padding:30px 24px}
+.asm-h{display:flex; align-items:center; gap:12px; margin-bottom:22px}
+.asm-spin{width:20px;height:20px;border-radius:50%;border:2.5px solid var(--accent-weak);border-top-color:var(--accent);animation:spin .8s linear infinite;flex:none}
+@keyframes spin{to{transform:rotate(360deg)}}
+.asm-title{font-size:15px; font-weight:700; letter-spacing:-0.02em}
+.asm-sub{font-size:12.5px; color:var(--ink-3)}
+.asm-srcs{display:flex; flex-direction:column; gap:10px; max-width:560px}
+.asm-src{display:flex; align-items:center; gap:13px; padding:13px 16px; border:1px solid var(--line); border-radius:var(--r-sm); background:#fff; transition:.3s}
+.asm-src.done{border-color:var(--green-line); background:var(--green-bg)}
+.asm-ic{width:28px;height:28px;border-radius:7px;display:grid;place-items:center;flex:none;background:var(--canvas);border:1px solid var(--line)}
+.asm-ic svg{width:15px;height:15px;color:var(--ink-4)}
+.asm-src.done .asm-ic{background:#fff;border-color:var(--green-line)} .asm-src.done .asm-ic svg{color:var(--green)}
+.asm-nm{font-weight:600; font-size:13.5px; letter-spacing:-0.01em}
+.asm-dt{font-family:var(--mono); font-size:11px; color:var(--ink-4)}
+.asm-st{margin-left:auto; font-family:var(--mono); font-size:11px; color:var(--ink-4)}
+.asm-st.ok{color:var(--green)}
+.asm-pulse{width:16px;height:16px;flex:none}
+.asm-pulse circle{animation:pulse 1.2s ease infinite}
+@keyframes pulse{0%,100%{opacity:.3}50%{opacity:1}}
+
+/* ---------- Ask ---------- */
+.ask-wrap{max-width:760px; margin:0 auto}
+.ask-box{position:relative}
+.ask-box textarea{
+  width:100%; border:1px solid var(--line); border-radius:var(--r-lg); background:#fff; box-shadow:var(--shadow);
+  padding:18px 110px 18px 18px; font-family:inherit; font-size:16px; letter-spacing:-0.01em; color:var(--ink); resize:none; line-height:1.5; transition:.14s;
+}
+.ask-box textarea:focus{outline:none; border-color:var(--accent); box-shadow:0 0 0 3px var(--accent-weak),var(--shadow)}
+.ask-box textarea::placeholder{color:var(--ink-4)}
+.ask-go{position:absolute; right:12px; bottom:12px}
+.chips{display:flex; gap:8px; flex-wrap:wrap; margin-top:14px; justify-content:center}
+.chip{font-size:12.5px; font-weight:500; color:var(--ink-2); background:#fff; border:1px solid var(--line); padding:7px 13px; border-radius:20px; transition:.14s; box-shadow:var(--shadow-sm)}
+.chip:hover{border-color:var(--accent-line); color:var(--accent-deep); background:var(--accent-weak)}
+.chip .q{color:var(--ink-4); margin-right:5px; font-family:var(--mono)}
+.answer{margin-top:26px}
+.ans-card{background:#fff; border:1px solid var(--line); border-radius:var(--r-lg); box-shadow:var(--shadow); overflow:hidden}
+.ans-q{display:flex; align-items:center; gap:10px; padding:14px 20px; border-bottom:1px solid var(--line); background:var(--canvas)}
+.ans-q .lbl{color:var(--ink-4)}
+.ans-q .qt{font-weight:600; font-size:14px; letter-spacing:-0.01em}
+.ans-q .intent{margin-left:auto}
+.ans-body{padding:20px}
+.ans-sum{font-size:16px; line-height:1.6; letter-spacing:-0.01em; color:var(--ink)}
+.taxiql-block{margin-top:18px; border:1px solid var(--line); border-radius:var(--r-sm); overflow:hidden}
+.tql-top{display:flex; align-items:center; justify-content:space-between; padding:9px 14px; background:#0E1326; }
+.tql-top .lbl{color:#8E94F0}
+.tql-top .dots{display:flex; gap:5px}
+.tql-top .dots i{width:8px;height:8px;border-radius:50%;background:#2A2F45}
+.tql-code{margin:0; padding:15px 16px; background:#0B0F1E; color:#D6DAF5; font-family:var(--mono); font-size:12.5px; line-height:1.65; overflow-x:auto; white-space:pre}
+.tql-code .kw{color:#8E94F0; font-weight:600} .tql-code .ty{color:#7DD3A8} .tql-code .st{color:#F4C77B} .tql-code .pn{color:#9AA3B8}
+.ask-foot{display:flex; align-items:center; gap:7px; margin-top:13px; font-size:12px; color:var(--ink-4); font-family:var(--mono)}
+.ask-foot svg{width:14px;height:14px;color:var(--accent)}
+
+/* ---------- Monitoring ---------- */
+.mon-grid{display:grid; grid-template-columns:repeat(2,1fr); gap:14px}
+.mon-card{background:#fff; border:1px solid var(--line); border-radius:var(--r); box-shadow:var(--shadow); padding:16px 18px}
+.mon-top{display:flex; align-items:center; justify-content:space-between; gap:12px}
+.mon-name{font-weight:600; font-size:14px; letter-spacing:-0.01em; display:flex; align-items:center; gap:9px}
+.mon-mid{display:flex; align-items:center; gap:14px; margin:14px 0 12px; padding:12px 0; border-top:1px solid var(--line-2); border-bottom:1px solid var(--line-2)}
+.mon-score{display:flex; flex-direction:column; gap:2px}
+.mon-score .v{font-family:var(--mono); font-size:22px; font-weight:600; letter-spacing:-0.02em}
+.mon-bot{display:flex; align-items:center; justify-content:space-between; gap:10px}
+.mon-last{font-family:var(--mono); font-size:11px; color:var(--ink-4)}
+.delta{display:flex; align-items:center; gap:8px; padding:9px 12px; border-radius:var(--r-sm); font-size:12.5px; font-weight:600; margin-top:12px; animation:slidein .35s ease}
+@keyframes slidein{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
+.delta.up{background:var(--red-bg); color:#912018; border:1px solid var(--red-line)}
+.delta.down{background:var(--green-bg); color:#067647; border:1px solid var(--green-line)}
+.delta.same{background:var(--canvas); color:var(--ink-3); border:1px solid var(--line)}
+.delta svg{width:15px;height:15px;flex:none}
+.recheck{font-family:var(--mono); font-size:11.5px; font-weight:600}
+.spin-sm{width:13px;height:13px;border:2px solid var(--accent-weak);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite;display:inline-block;vertical-align:-2px}
+.mon-banner{display:flex;align-items:center;gap:11px;padding:13px 16px;background:linear-gradient(90deg,var(--accent-weak),#fff);border:1px solid var(--accent-line);border-radius:var(--r);margin-bottom:18px}
+.mon-banner svg{width:18px;height:18px;color:var(--accent);flex:none}
+.mon-banner b{font-weight:700} .mon-banner span{color:var(--ink-2); font-size:13px}
+
+/* toast */
+.toasts{position:fixed; bottom:22px; right:22px; z-index:100; display:flex; flex-direction:column; gap:9px}
+.toast{display:flex; align-items:center; gap:10px; background:var(--ink); color:#fff; padding:11px 15px; border-radius:var(--r-sm); box-shadow:var(--shadow-lg); font-size:13px; font-weight:500; animation:slidein .25s ease; max-width:340px}
+.toast svg{width:16px;height:16px;flex:none}
+.toast.ok svg{color:#6CE9A6} .toast.err svg{color:#FDA29B}
+
+/* error banner */
+.err-banner{display:flex;align-items:center;gap:11px;padding:14px 16px;background:var(--red-bg);border:1px solid var(--red-line);border-radius:var(--r);color:#912018;font-size:13px}
+.err-banner svg{width:18px;height:18px;flex:none}
+.err-banner b{font-weight:700}
+
+.spacer{height:18px}
+.hide{display:none !important}
+
+@media (max-width:980px){
+  .app{grid-template-columns:1fr}
+  .sidebar{display:none}
+  .stats{grid-template-columns:repeat(2,1fr)}
+  .flags,.doss,.mon-grid{grid-template-columns:1fr}
+  .verdict{grid-template-columns:1fr; justify-items:center; text-align:center}
+}
+
+/* ============ PRINT ============ */
+@media print{
+  @page{margin:14mm}
+  body{background:#fff; font-size:11px}
+  .sidebar,.topbar,.toasts,.no-print,.btn,.iconbtn,.recheck,.chips,.ask-box,.nav,.search{display:none !important}
+  .app{display:block}
+  .view{padding:0; max-width:none}
+  .view:not(#view-assess){display:none !important}
+  #view-assess{display:block !important}
+  .card,.net-wrap,.lineage,.verdict{box-shadow:none !important; break-inside:avoid}
+  .flag,.src,.media-item,.person{break-inside:avoid}
+  .print-head{display:flex !important}
+  .net-wrap, .doss, .lineage, .flags{break-inside:avoid}
+  a{color:var(--ink); text-decoration:none}
+  .tql-code{background:#f5f5f5; color:#101828; border:1px solid #ddd}
+  .tql-top{background:#eee} .tql-top .lbl{color:#667085}
+  /* upgraded lineage panel prints light + legibly */
+  .lin-taxiql pre{background:#f5f5f5; color:#101828; border-top:1px solid #ddd}
+  .lin-taxiql pre .kw,.lin-taxiql pre .ty,.lin-taxiql pre .st,.lin-taxiql pre .pn{color:#101828}
+  .lin-taxiql .top{background:#eee} .lin-taxiql .top .lbl{color:#667085}
+  .lsrc,.lin-why{break-inside:avoid}
+  .lsrc-toggle{display:none !important}
+  .lsrc-taxi{background:#f5f5f5 !important; max-height:none}
+  .lsrc-taxi pre{color:#101828}
+}
+.print-head{display:none; align-items:center; justify-content:space-between; padding-bottom:14px; margin-bottom:18px; border-bottom:2px solid var(--ink)}
+.print-head .pl{display:flex; align-items:center; gap:10px}
+.print-head .pl b{font-size:16px; font-weight:800}
+.print-head .pr{text-align:right; font-family:var(--mono); font-size:10px; color:var(--ink-3)}
+
+/* ============================================================
+   LIVE ACTIVITY CONSOLE  (the ONLY dark surface in the app)
+   Docked bottom; shows every real Orbital call + the full .taxi.
+   ============================================================ */
+:root{
+  --con-bg:#0B0F1E; --con-bg2:#0E1326; --con-line:#1E2540; --con-line2:#161C33;
+  --con-ink:#C7CCF0; --con-ink2:#8E94B8; --con-ink3:#646C92;
+  --con-acc:#8E94F0; --con-ty:#7DD3A8; --con-st:#F4C77B; --con-warn:#FDA29B;
+}
+.console{
+  position:fixed; left:0; right:0; bottom:0; z-index:60;
+  background:var(--con-bg); color:var(--con-ink);
+  font-family:var(--mono); border-top:1px solid var(--con-line);
+  box-shadow:0 -10px 30px -12px rgba(0,0,0,.55);
+  display:flex; flex-direction:column; max-height:60vh;
+}
+.console-bar{
+  display:flex; align-items:center; gap:12px; padding:8px 16px;
+  background:linear-gradient(180deg,var(--con-bg2),var(--con-bg));
+  border-bottom:1px solid var(--con-line); cursor:pointer; user-select:none; flex:none;
+}
+.console-bar .cb-dot{width:8px;height:8px;border-radius:50%;background:var(--con-ty);box-shadow:0 0 0 3px rgba(125,211,168,.14);flex:none}
+.console-bar .cb-title{font-size:11.5px;font-weight:600;letter-spacing:.04em;color:#E6E8FA}
+.console-bar .cb-sub{font-size:10px;color:var(--con-ink3);letter-spacing:.02em}
+.console-bar .cb-count{font-size:10px;color:var(--con-acc);background:rgba(142,148,240,.12);border:1px solid rgba(142,148,240,.25);border-radius:20px;padding:1px 8px;letter-spacing:.04em}
+.console-bar .cb-spacer{flex:1}
+.console-bar .cb-act{display:inline-flex;align-items:center;gap:6px;font-size:10.5px;color:var(--con-ink2);background:rgba(255,255,255,.03);border:1px solid var(--con-line);border-radius:6px;padding:3px 9px;letter-spacing:.03em;transition:.12s}
+.console-bar .cb-act:hover{color:#E6E8FA;border-color:#2C3556;background:rgba(255,255,255,.06)}
+.console-bar .cb-chev{transition:transform .2s;color:var(--con-ink3)}
+.console.collapsed .cb-chev{transform:rotate(180deg)}
+.console.collapsed .console-body{display:none}
+.console-body{overflow-y:auto; padding:4px 0 10px; flex:1; min-height:0}
+.console-empty{padding:18px 18px;color:var(--con-ink3);font-size:11px;letter-spacing:.02em}
+
+/* one request entry */
+.req{border-bottom:1px solid var(--con-line2); padding:11px 16px 13px}
+.req:last-child{border-bottom:0}
+.req-head{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.req-verb{font-size:9.5px;font-weight:600;letter-spacing:.10em;text-transform:uppercase;color:#0B0F1E;background:var(--con-acc);border-radius:4px;padding:1px 6px;flex:none}
+.req-verb.ask{background:var(--con-ty)}
+.req-q{font-size:12px;color:#E6E8FA;font-weight:500;letter-spacing:-.01em}
+.req-meta{margin-left:auto;font-size:10px;color:var(--con-ink3);letter-spacing:.03em;white-space:nowrap}
+.req-meta b{color:var(--con-ty);font-weight:600}
+.req-meta .err{color:var(--con-warn)}
+/* the actual TaxiQL that ran */
+.req-tql{margin:9px 0 2px;background:#070A15;border:1px solid var(--con-line);border-radius:7px;padding:9px 11px;font-size:11px;line-height:1.6;color:#D6DAF5;white-space:pre-wrap;overflow-x:auto}
+.req-tql .kw{color:var(--con-acc);font-weight:600}.req-tql .ty{color:var(--con-ty)}.req-tql .st{color:var(--con-st)}.req-tql .pn{color:var(--con-ink3)}
+.req-srcs{margin-top:9px;display:flex;flex-direction:column;gap:7px}
+.csrc{background:rgba(255,255,255,.018);border:1px solid var(--con-line2);border-radius:7px;padding:8px 10px}
+.csrc-line{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:11px}
+.csrc-type{color:var(--con-ty);font-weight:600}
+.csrc-arrow{color:var(--con-ink3)}
+.csrc-file{color:var(--con-acc)}
+.csrc-op{color:var(--con-ink2)}
+.csrc-rows{color:var(--con-ink);font-weight:600}
+.csrc-rows.zero{color:var(--con-ink3);font-weight:400}
+.csrc-sep{color:var(--con-line);font-weight:400}
+.csrc-ep{margin-top:5px;display:flex;align-items:center;gap:7px;font-size:10px;color:var(--con-ink2);letter-spacing:.01em}
+.csrc-ep svg{width:11px;height:11px;color:var(--con-ink3);flex:none}
+.csrc-ep .m{color:var(--con-st)}
+.csrc-taxibtn{margin-top:7px;display:inline-flex;align-items:center;gap:6px;font-family:var(--mono);font-size:10px;color:var(--con-acc);background:rgba(142,148,240,.08);border:1px solid rgba(142,148,240,.22);border-radius:5px;padding:2px 8px;letter-spacing:.04em;transition:.12s}
+.csrc-taxibtn:hover{background:rgba(142,148,240,.16);color:#fff}
+.csrc-taxibtn svg{width:11px;height:11px;transition:transform .15s}
+.csrc-taxibtn.open svg{transform:rotate(90deg)}
+.csrc-taxi{margin-top:7px;background:#070A15;border:1px solid var(--con-line);border-radius:7px;max-height:240px;overflow:auto}
+.csrc-taxi pre{margin:0;padding:10px 12px;font-family:var(--mono);font-size:10.5px;line-height:1.6;color:#AEB4DE;white-space:pre;tab-size:2}
+/* per-request WHY */
+.req-why{margin-top:10px;border-top:1px dashed var(--con-line);padding-top:9px}
+.req-why .wh{font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--con-ink3);margin-bottom:6px}
+.req-why ul{margin:0;padding:0;list-style:none;display:grid;grid-template-columns:1fr 1fr;gap:5px 16px}
+.req-why li{font-size:10.5px;color:var(--con-ink2);line-height:1.45;display:flex;gap:7px;align-items:flex-start}
+.req-why li svg{width:11px;height:11px;color:var(--con-ty);flex:none;margin-top:2px}
+.req-why li b{color:var(--con-ink);font-weight:600}
+@media (max-width:760px){ .req-why ul{grid-template-columns:1fr} }
+
+/* lift floating toasts above the docked console bar */
+.toasts{bottom:64px}
+</style>
+</head>
+<body>
+<div class="app">
+  <!-- ===== Sidebar ===== -->
+  <aside class="sidebar no-print">
+    <div class="brand">
+      <svg class="mark" viewBox="0 0 32 32" fill="none">
+        <rect width="32" height="32" rx="8" fill="#3538CD"/>
+        <circle cx="16" cy="16" r="9" stroke="#fff" stroke-width="1.4" opacity=".4"/>
+        <ellipse cx="16" cy="16" rx="9" ry="3.6" stroke="#fff" stroke-width="1.4" opacity=".7"/>
+        <circle cx="16" cy="16" r="3.4" fill="#fff"/>
+        <circle cx="24.5" cy="11" r="1.7" fill="#fff"/>
+      </svg>
+      <div>
+        <div class="brand-name">Orbital Risk</div>
+        <div class="brand-sub">Counterparty Intel</div>
+      </div>
+    </div>
+    <nav class="nav" id="nav">
+      <div class="nav-h lbl">Workspace</div>
+      <button class="nav-btn" data-view="portfolio">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg>
+        Portfolio <span class="nav-count" id="nav-pf">0</span>
+      </button>
+      <button class="nav-btn" data-view="assess">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+        Assess
+      </button>
+      <button class="nav-btn" data-view="ask">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        Ask
+      </button>
+      <button class="nav-btn" data-view="monitoring">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+        Monitoring <span class="nav-count" id="nav-mon">0</span>
+      </button>
+    </nav>
+    <div class="side-foot">
+      <div class="plan">
+        <span class="plan-dot"></span>
+        <div class="plan-txt"><b>Compliance · Pro</b>Live · 3 typed sources</div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ===== Main ===== -->
+  <div class="main">
+    <div class="topbar no-print">
+      <div class="search">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+        <input id="globalSearch" type="text" placeholder="Search or add a UK company — e.g. Tesco PLC, Promoat Limited…" autocomplete="off" spellcheck="false">
+        <kbd>↵</kbd>
+      </div>
+      <div class="top-r">
+        <button class="btn" id="exportBtn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M12 18v-6"/><path d="m9 15 3 3 3-3"/></svg>
+          Export PDF
+        </button>
+        <div class="avatar" title="Jordan Hammant · Compliance">JH</div>
+      </div>
+    </div>
+
+    <!-- ===== PORTFOLIO ===== -->
+    <section class="view" id="view-portfolio"></section>
+    <!-- ===== ASSESS ===== -->
+    <section class="view hide" id="view-assess"></section>
+    <!-- ===== ASK ===== -->
+    <section class="view hide" id="view-ask"></section>
+    <!-- ===== MONITORING ===== -->
+    <section class="view hide" id="view-monitoring"></section>
+  </div>
+</div>
+<div class="toasts" id="toasts"></div>
+
+<!-- ===== Orbital · live activity console (the only dark surface) ===== -->
+<aside class="console no-print collapsed" id="console" aria-label="Orbital live activity console">
+  <div class="console-bar" id="consoleBar">
+    <span class="cb-dot"></span>
+    <span class="cb-title">Orbital · live activity</span>
+    <span class="cb-sub" id="consoleSub">every call this app makes — the real TaxiQL, the real endpoints, the full .taxi</span>
+    <span class="cb-count" id="consoleCount">0 calls</span>
+    <span class="cb-spacer"></span>
+    <button class="cb-act" id="consoleClear" type="button" title="Clear the log">clear</button>
+    <svg class="cb-chev" id="consoleChev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+  </div>
+  <div class="console-body" id="consoleBody">
+    <div class="console-empty" id="consoleEmpty">Waiting for the first call… open a counterparty in Assess, load the Portfolio, or ask a question. Each request is logged here with the typed sources Orbital composed.</div>
+  </div>
+</aside>
+
+<script>
+"use strict";
+/* ============================================================
+   Orbital Risk — single-file SPA against live same-origin API
+   ============================================================ */
+const API = {
+  brain: (name,full) => `/api/brain?name=${encodeURIComponent(name)}${full?"&full=1":""}`,
+  ask:   (q)    => `/api/ask?q=${encodeURIComponent(q)}`,
+  trading:(t)   => `/api/trading?ticker=${encodeURIComponent(t)}`,
+};
+const SEED = ["TESCO PLC","BARCLAYS BANK PLC","PROMOAT LIMITED","DEAF ELEVATION LTD"];
+const LS_WATCH = "orbital.watchlist.v1";
+const LS_BANDS = "orbital.bands.v1";      // last-seen band per company (monitoring deltas)
+const CACHE = new Map();                  // name(lower) -> brain payload (session)
+
+/* ---------- tiny helpers ---------- */
+const $  = (s,r=document)=>r.querySelector(s);
+const $$ = (s,r=document)=>Array.from(r.querySelectorAll(s));
+const el = (t,c,h)=>{const e=document.createElement(t); if(c)e.className=c; if(h!=null)e.innerHTML=h; return e;};
+const esc = (s)=>String(s==null?"":s).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));
+const titleCase = (s)=>String(s||"").replace(/\w\S*/g,w=>w.charAt(0).toUpperCase()+w.slice(1).toLowerCase());
+const upper = (s)=>String(s||"").toUpperCase();
+const key = (s)=>String(s||"").trim().toLowerCase();
+function load(k,f){try{const v=JSON.parse(localStorage.getItem(k)); return v==null?f:v;}catch(e){return f;}}
+function save(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch(e){}}
+
+function fmtDate(d){
+  if(!d) return "";
+  const dt = new Date(d);
+  if(isNaN(dt)) return String(d).slice(0,16);
+  return dt.toLocaleDateString("en-GB",{day:"2-digit",month:"short",year:"numeric"});
+}
+function relTime(ts){
+  if(!ts) return "—";
+  const s = Math.floor((Date.now()-ts)/1000);
+  if(s<10) return "just now";
+  if(s<60) return s+"s ago";
+  const m=Math.floor(s/60); if(m<60) return m+"m ago";
+  const h=Math.floor(m/60); if(h<24) return h+"h ago";
+  const d=Math.floor(h/24); return d+"d ago";
+}
+function nowClock(){ return new Date().toLocaleString("en-GB",{day:"2-digit",month:"short",year:"numeric",hour:"2-digit",minute:"2-digit"}); }
+function initials(name){
+  const w = String(name||"?").replace(/\b(PLC|LIMITED|LTD|LLP|GROUP|HOLDINGS|UK|THE|BANK)\b/gi,"").trim().split(/\s+/).filter(Boolean);
+  return ((w[0]?.[0]||name?.[0]||"?")+(w[1]?.[0]||"")).toUpperCase();
+}
+const HUES = [232,262,210,288,180,330,22,148];
+function hueFor(name){ let h=0; for(const c of String(name)) h=(h*31+c.charCodeAt(0))>>>0; return HUES[h%HUES.length]; }
+function avaStyle(name){ const h=hueFor(name); return `background:linear-gradient(135deg,hsl(${h} 62% 56%),hsl(${(h+24)%360} 58% 44%))`; }
+const bandColor = (b)=>({RED:"var(--red)",AMBER:"var(--amber)",GREEN:"var(--green)"}[b]||"var(--ink-4)");
+const bandClass = (b)=>(["RED","AMBER","GREEN"].includes(b)?b:"NEU");
+
+function toast(msg,type="ok"){
+  const t=el("div","toast "+type);
+  const ico = type==="err"
+    ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="m15 9-6 6M9 9l6 6"/></svg>'
+    : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>';
+  t.innerHTML = ico+`<span>${esc(msg)}</span>`;
+  $("#toasts").appendChild(t);
+  setTimeout(()=>{t.style.transition="opacity .3s,transform .3s";t.style.opacity="0";t.style.transform="translateX(8px)";setTimeout(()=>t.remove(),300);},3200);
+}
+
+/* ---------- fetch w/ timeout + graceful errors ---------- */
+async function getJSON(url,{timeout=90000}={}){
+  const ctl = new AbortController();
+  const tm = setTimeout(()=>ctl.abort(), timeout);
+  try{
+    const r = await fetch(url,{signal:ctl.signal,headers:{"Accept":"application/json"},credentials:"same-origin"});
+    if(!r.ok){
+      let detail=""; try{const j=await r.json(); detail=j.error||j.message||"";}catch(e){}
+      throw new Error(`HTTP ${r.status}${detail?" · "+detail:""}`);
+    }
+    return await r.json();
+  } finally { clearTimeout(tm); }
+}
+async function getBrain(name,{fresh=false,full=false}={}){
+  const k=key(name)+(full?"|full":"");
+  if(!fresh && CACHE.has(k)) return CACHE.get(k);
+  const data = await getJSON(API.brain(name,full));
+  CACHE.set(k,data);
+  return data;
+}
+
+/* ============================================================
+   LIVE ACTIVITY CONSOLE — logs every real Orbital call this app
+   makes: the TaxiQL that ran, the typed sources, the real
+   endpoints, the full .taxi behind each, and WHY it's good.
+   (The only dark surface in the app. Dock at the bottom.)
+   ============================================================ */
+const Console = (()=>{
+  let n=0;
+  const ICK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>';
+  const ICEP = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.8 1.7"/><path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.8-1.7"/></svg>';
+  const ICDOC = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></svg>';
+  const body = ()=>$("#consoleBody"), emptyEl = ()=>$("#consoleEmpty");
+  function bump(){ n++; const c=$("#consoleCount"); if(c) c.textContent = n+" "+(n===1?"call":"calls"); emptyEl()?.remove(); }
+  function prepend(node){
+    const b=body(); if(!b) return;
+    bump();
+    b.insertBefore(node, b.firstChild);
+    // keep the dock from growing unbounded
+    while(b.querySelectorAll(".req").length>24){ b.lastElementChild?.remove(); }
+  }
+  // one source row inside a brain request
+  function sourceRow(s){
+    const wrap=el("div","csrc");
+    const type=esc(s.type||s.node||"—");
+    const file=esc(s.taxiFile||"—");
+    const op=esc(s.operation||"");
+    const rows=Number(s.rows||0);
+    const rowsCls = rows>0 ? "csrc-rows" : "csrc-rows zero";
+    // type  <-  taxiFile · operation · N rows
+    wrap.innerHTML =
+      `<div class="csrc-line">`+
+        `<span class="csrc-type">${type}</span>`+
+        `<span class="csrc-arrow">&larr;</span>`+
+        `<span class="csrc-file">${file}</span>`+
+        (op?`<span class="csrc-sep">&middot;</span><span class="csrc-op">${op}</span>`:"")+
+        `<span class="csrc-sep">&middot;</span><span class="${rowsCls}">${rows.toLocaleString()} ${rows===1?"row":"rows"}</span>`+
+      `</div>`+
+      (s.endpoint?`<div class="csrc-ep">${ICEP}<span><span class="m">${esc(s.endpoint)}</span></span></div>`:"");
+    // FULL .taxi reveal (schemaFull) — escaped monospace
+    const full = s.schemaFull || s.schema || "";
+    if(full){
+      const btn=el("button","csrc-taxibtn"); btn.type="button";
+      btn.innerHTML = ICDOC+`<span>view .taxi</span>`;
+      const pane=el("div","csrc-taxi hide");
+      pane.innerHTML = `<pre>${esc(full)}</pre>`;
+      btn.addEventListener("click",()=>{
+        const open=pane.classList.toggle("hide")===false;
+        btn.classList.toggle("open",open);
+        btn.querySelector("span").textContent = open?"hide .taxi":"view .taxi";
+      });
+      wrap.appendChild(btn); wrap.appendChild(pane);
+    }
+    return wrap;
+  }
+  // a /api/brain call
+  function logBrain(name,{lineage,ms,error}={}){
+    const req=el("div","req");
+    const L=lineage||{};
+    const sources=Array.isArray(L.sources)?L.sources:[];
+    const totalRows=sources.reduce((a,s)=>a+(Number(s.rows)||0),0);
+    const meta = error
+      ? `<span class="err">&#9888; ${esc(error)}</span>`
+      : `<b>${sources.length}</b> sources &middot; <b>${totalRows.toLocaleString()}</b> rows${ms!=null?` &middot; <b>${Number(ms).toLocaleString()}</b>ms`:""}`;
+    req.innerHTML =
+      `<div class="req-head">`+
+        `<span class="req-verb">GET</span>`+
+        `<span class="req-q">/api/brain &middot; ${esc(titleCase(name))}</span>`+
+        `<span class="req-meta">${meta}</span>`+
+      `</div>`;
+    if(L.taxiql){
+      const pre=el("div","req-tql"); pre.innerHTML=highlightTaxiQL(L.taxiql); req.appendChild(pre);
+    }
+    if(sources.length){
+      const sl=el("div","req-srcs");
+      sources.forEach(s=>sl.appendChild(sourceRow(s)));
+      req.appendChild(sl);
+    }
+    const why=Array.isArray(L.why)?L.why:[];
+    if(why.length){
+      const w=el("div","req-why");
+      w.innerHTML = `<div class="wh">Why this is good</div><ul>`+
+        why.map(pt=>{
+          const t=String(pt); const dash=t.indexOf("—")>=0?t.indexOf("—"):t.indexOf(" - ");
+          const lead = dash>0 ? `<b>${esc(t.slice(0,dash).trim())}</b> ${esc(t.slice(dash+1).replace(/^[—-]\s*/,"").trim())}` : esc(t);
+          return `<li>${ICK}<span>${lead}</span></li>`;
+        }).join("")+`</ul>`;
+      req.appendChild(w);
+    }
+    prepend(req);
+  }
+  // a /api/ask call
+  function logAsk(q,{taxiql,intent,error}={}){
+    const req=el("div","req");
+    const meta = error
+      ? `<span class="err">&#9888; ${esc(error)}</span>`
+      : (intent?`intent <b>${esc(intent)}</b>`:`English &rarr; typed query`);
+    req.innerHTML =
+      `<div class="req-head">`+
+        `<span class="req-verb ask">ASK</span>`+
+        `<span class="req-q">/api/ask &middot; &ldquo;${esc(q)}&rdquo;</span>`+
+        `<span class="req-meta">${meta}</span>`+
+      `</div>`;
+    if(taxiql){
+      const pre=el("div","req-tql"); pre.innerHTML=highlightTaxiQL(taxiql); req.appendChild(pre);
+    }
+    prepend(req);
+  }
+  function clear(){
+    n=0; const c=$("#consoleCount"); if(c) c.textContent="0 calls";
+    const b=body(); if(b){
+      b.innerHTML=`<div class="console-empty" id="consoleEmpty">Log cleared. The next call this app makes will appear here.</div>`;
+    }
+  }
+  // bar: collapse/expand + clear
+  function wire(){
+    const con=$("#console"), bar=$("#consoleBar");
+    bar?.addEventListener("click",e=>{
+      if(e.target.closest("#consoleClear")) return;     // clear handled separately
+      con.classList.toggle("collapsed");
+    });
+    $("#consoleClear")?.addEventListener("click",e=>{ e.stopPropagation(); clear(); });
+  }
+  return { logBrain, logAsk, clear, wire };
+})();
+
+/* ---- hook getBrain: log the real lineage of every brain call ---- */
+const _origGetBrain = getBrain;
+getBrain = async function(name, opts){
+  const t0 = (typeof performance!=="undefined" ? performance.now() : Date.now());
+  try{
+    const data = await _origGetBrain(name, opts);
+    const ms = Math.round((typeof performance!=="undefined" ? performance.now() : Date.now()) - t0);
+    const L = data && data.lineage;
+    // prefer the backend's own measured time; fall back to wall time
+    Console.logBrain(name, { lineage:L, ms: (L && L.totalMs!=null) ? L.totalMs : ms });
+    return data;
+  }catch(err){
+    Console.logBrain(name, { error: err && err.message ? err.message : String(err) });
+    throw err;
+  }
+};
+
+/* ---- hook doAsk: log the generated TaxiQL of every ask ---- */
+/* (doAsk is a hoisted declaration further down; reassigning its binding is fine) */
+
+/* ---------- derive a normalized view-model from a brain payload ---------- */
+function vm(data){
+  const r = data.risk||{};
+  const res = data.resolved||{};
+  const band = (r.band||"").toUpperCase();
+  const flags = Array.isArray(r.flags)?r.flags:[];
+  const sev = {high:0,med:1,low:2};
+  const topFlag = [...flags].sort((a,b)=>(sev[a.sev]??9)-(sev[b.sev]??9))[0]||null;
+  return {
+    raw:data,
+    name: res.companyName || r.companyName || data.query || "Unknown",
+    number: res.companyNumber || r.companyNumber || null,
+    lei: res.lei || null,
+    status: res.status || r.status || null,
+    incorporated: res.incorporated || r.incorporated || null,
+    postcode: res.postcode || r.postcode || null,
+    band, score: (typeof r.score==="number"?r.score:null),
+    verdict: r.verdict || "", recommendation: r.recommendation || "",
+    flags, topFlag,
+    controllers: Array.isArray(r.controllers)?r.controllers:[],
+    network: r.network || {nodes:[],edges:[]},
+    media: Array.isArray(data.adverseMedia)?data.adverseMedia:[],
+    sanctions: data.sanctions || null,
+    lineage: data.lineage || null,
+    // ----- full-dossier fields (present only when ?full=1; may be null) -----
+    peopleScreening: data.peopleScreening || null,
+    companiesHouseLive: data.companiesHouseLive || null,
+    ubo: data.ubo || null,
+    contracts: data.contracts || null,
+    narrative: data.narrative || null,
+    property: data.property || null,
+  };
+}
+function parseControl(c){
+  let arr=[];
+  try{ arr = typeof c==="string" ? JSON.parse(c) : (Array.isArray(c)?c:[]); }catch(e){ arr = String(c||"").split(","); }
+  return arr.map(x=>String(x).replace(/-/g," ").replace(/\bpercent\b/,"%").replace(/(\d+) to (\d+)/,"$1–$2").trim()).filter(Boolean);
+}
+
+/* ============================================================
+   ROUTER
+   ============================================================ */
+const state = { view:"portfolio", current:null /* name being assessed */ };
+function setView(v){
+  state.view=v;
+  $$(".view").forEach(s=>s.classList.add("hide"));
+  $("#view-"+v).classList.remove("hide");
+  $$("#nav .nav-btn").forEach(b=>b.classList.toggle("active", b.dataset.view===v));
+  window.scrollTo({top:0,behavior:"instant"});
+  if(v==="portfolio") renderPortfolio();
+  if(v==="ask") renderAsk();
+  if(v==="monitoring") renderMonitoring();
+  if(v==="assess" && !state.current){
+    const ve=$("#view-assess"); ve.innerHTML = assessEmpty();
+    ve.querySelector("#assess-ex")?.addEventListener("click",ev=>{const c=ev.target.closest(".chip"); if(c) openAssess(c.dataset.q);});
+  }
+}
+$("#nav").addEventListener("click",e=>{
+  const b=e.target.closest(".nav-btn"); if(!b)return; setView(b.dataset.view);
+});
+
+/* ============================================================
+   PORTFOLIO
+   ============================================================ */
+function getWatch(){ return load(LS_WATCH, SEED.slice()); }
+function setWatch(list){ save(LS_WATCH,list); updateCounts(); }
+function updateCounts(){
+  const n=getWatch().length;
+  $("#nav-pf").textContent=n; $("#nav-mon").textContent=n;
+}
+
+function renderPortfolio(){
+  const watch = getWatch();
+  const v = $("#view-portfolio");
+  v.innerHTML = `
+    <div class="page-head row-between">
+      <div>
+        <div class="page-eyebrow">Watchlist</div>
+        <h1 class="page-title">Counterparty Portfolio</h1>
+        <p class="page-sub">Continuously assessed counterparties. Each is scored live across identity, ownership-risk, adverse media and sanctions — assembled by Orbital with zero integration code.</p>
+      </div>
+    </div>
+    <div class="stats" id="pf-stats">
+      ${statCard("s-tot","Monitored",watch.length,'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>')}
+      ${statCard("s-red","Red · do-not-proceed","—",redDot('var(--red)'))}
+      ${statCard("s-amber","Amber · review","—",redDot('var(--amber)'))}
+      ${statCard("s-green","Green · clear","—",redDot('var(--green)'))}
+    </div>
+    <div class="card">
+      <div class="tbl-head">
+        <h3>Monitored counterparties</h3>
+        <span class="meta tnum" id="pf-meta">${watch.length} ${watch.length===1?"entity":"entities"} · refreshed ${esc(nowClock())}</span>
+      </div>
+      <div style="overflow-x:auto">
+      <table class="pf">
+        <thead><tr>
+          <th>Counterparty</th><th>Status</th><th class="r">Risk band</th><th>Top exposure</th><th>Last checked</th><th class="r"></th>
+        </tr></thead>
+        <tbody id="pf-body"></tbody>
+      </table>
+      </div>
+      ${watch.length===0?emptyState("No counterparties yet","Use the search bar above to add a UK company to your watchlist."):""}
+    </div>`;
+  const body = $("#pf-body");
+  if(watch.length===0){ body.closest("table").classList.add("hide"); return; }
+
+  // render skeleton rows immediately
+  watch.forEach(name=>{ body.appendChild(skeletonRow(name)); });
+
+  // load each in parallel; update its row as it resolves
+  const counts={RED:0,AMBER:0,GREEN:0};
+  let done=0;
+  watch.forEach(name=>{
+    getBrain(name).then(data=>{
+      const m=vm(data);
+      const row=fillRow(m);
+      const old=body.querySelector(`tr[data-k="${cssEsc(key(name))}"]`);
+      if(old) old.replaceWith(row);
+      if(counts[m.band]!=null) counts[m.band]++;
+      // record band for monitoring baseline
+      const bands=load(LS_BANDS,{}); if(m.band){bands[key(name)]=m.band; save(LS_BANDS,bands);}
+    }).catch(err=>{
+      const row=errorRow(name,err.message);
+      const old=body.querySelector(`tr[data-k="${cssEsc(key(name))}"]`);
+      if(old) old.replaceWith(row);
+    }).finally(()=>{
+      done++; updateStats(counts);
+      if(done===watch.length){ $("#pf-meta").textContent=`${watch.length} ${watch.length===1?"entity":"entities"} · refreshed ${nowClock()}`; }
+    });
+  });
+}
+function cssEsc(s){ return String(s).replace(/["\\]/g,"\\$&"); }
+function statCard(cls,label,n,ico){
+  return `<div class="stat ${cls}"><div class="k"><span class="lbl">${esc(label)}</span>${ico}</div><div class="n tnum">${n}</div></div>`;
+}
+function redDot(c){ return `<span style="width:9px;height:9px;border-radius:2px;background:${c};display:inline-block"></span>`; }
+function updateStats(c){
+  const s=$("#pf-stats"); if(!s)return;
+  const ns=s.querySelectorAll(".stat .n");
+  if(ns[1]) ns[1].textContent=c.RED;
+  if(ns[2]) ns[2].textContent=c.AMBER;
+  if(ns[3]) ns[3].textContent=c.GREEN;
+}
+function emptyState(h,p){
+  return `<div class="empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="11" cy="11" r="7"/><path d="m20 20-3-3"/></svg><h4>${esc(h)}</h4><p>${esc(p)}</p></div>`;
+}
+function skeletonRow(name){
+  const tr=el("tr"); tr.dataset.k=key(name);
+  tr.innerHTML=`
+    <td><div class="co-name"><span class="co-ava" style="${avaStyle(name)}">${esc(initials(name))}</span>${esc(titleCase(name))}</div></td>
+    <td><span class="sk" style="width:54px"></span></td>
+    <td style="text-align:right"><span class="sk" style="width:90px"></span></td>
+    <td><span class="sk" style="width:180px"></span></td>
+    <td><span class="sk" style="width:70px"></span></td>
+    <td></td>`;
+  return tr;
+}
+function fillRow(m){
+  const tr=el("tr"); tr.dataset.k=key(m.name);
+  tr.addEventListener("click",e=>{ if(e.target.closest(".iconbtn"))return; openAssess(m.name); });
+  const bc=bandColor(m.band);
+  const score = m.score==null?"—":m.score;
+  const flagH = m.topFlag
+    ? `<div class="flag-mini"><span class="sev-dot ${m.topFlag.sev}"></span><span title="${esc(m.topFlag.detail||m.topFlag.label)}">${esc(m.topFlag.label)}</span></div>`
+    : `<span style="color:var(--ink-4);font-size:12.5px">No flags raised</span>`;
+  tr.innerHTML=`
+    <td>
+      <div class="co-name"><span class="co-ava" style="${avaStyle(m.name)}">${esc(initials(m.name))}</span>${esc(titleCase(m.name))}</div>
+      <div class="co-meta">${m.number?("No. "+esc(m.number)):"Unregistered"}${m.postcode?" · "+esc(m.postcode):""}</div>
+    </td>
+    <td><span class="tag">${esc(m.status||"Unknown")}</span></td>
+    <td style="text-align:right">
+      <span class="score-cell">
+        <span class="score-bar"><i style="width:${Math.max(4,score===0?4:score)}%;background:${bc}"></i></span>
+        <span class="score-num" style="color:${bc}">${score}</span>
+        <span class="pill ${bandClass(m.band)}"><span class="dot"></span>${esc(m.band||"N/A")}</span>
+      </span>
+    </td>
+    <td>${flagH}</td>
+    <td><span class="checked">${esc(relTime(Date.now()))}</span></td>
+    <td style="text-align:right">
+      <button class="iconbtn" title="Remove from watchlist" data-rm="${esc(m.name)}">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m2 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/></svg>
+      </button>
+    </td>`;
+  tr.querySelector("[data-rm]").addEventListener("click",e=>{e.stopPropagation(); removeFromWatch(m.name);});
+  return tr;
+}
+function errorRow(name,msg){
+  const tr=el("tr"); tr.dataset.k=key(name);
+  tr.addEventListener("click",()=>openAssess(name));
+  tr.innerHTML=`
+    <td><div class="co-name"><span class="co-ava" style="${avaStyle(name)}">${esc(initials(name))}</span>${esc(titleCase(name))}</div></td>
+    <td colspan="4"><span style="color:var(--red);font-size:12.5px;font-family:var(--mono)">⚠ ${esc(msg||"assessment failed")}</span></td>
+    <td style="text-align:right"><button class="iconbtn" data-rm="${esc(name)}" title="Remove"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m2 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/></svg></button></td>`;
+  tr.querySelector("[data-rm]").addEventListener("click",e=>{e.stopPropagation(); removeFromWatch(name);});
+  return tr;
+}
+function addToWatch(name){
+  name=String(name||"").trim(); if(!name) return;
+  const list=getWatch();
+  if(list.some(x=>key(x)===key(name))){ toast(`${titleCase(name)} is already monitored`); openAssess(name); return; }
+  list.unshift(name); setWatch(list);
+  toast(`Added ${titleCase(name)} to watchlist`);
+  if(state.view==="portfolio") renderPortfolio();
+  else if(state.view==="monitoring") renderMonitoring();
+}
+function removeFromWatch(name){
+  const list=getWatch().filter(x=>key(x)!==key(name));
+  setWatch(list);
+  toast(`Removed ${titleCase(name)}`);
+  if(state.view==="portfolio") renderPortfolio();
+  if(state.view==="monitoring") renderMonitoring();
+}
+
+/* ============================================================
+   ASSESS
+   ============================================================ */
+function openAssess(name){
+  state.current=name;
+  setView("assess");
+  renderAssess(name);
+}
+function assessEmpty(){
+  const ex=["PROMOAT LIMITED","TESCO PLC","BARCLAYS BANK PLC","DEAF ELEVATION LTD"];
+  return `
+    <div class="page-head"><div class="page-eyebrow">Assess</div>
+      <h1 class="page-title">Assess a counterparty</h1>
+      <p class="page-sub">Type any UK company in the search bar above and Orbital assembles a live risk dossier — identity, the ownership-failure network, adverse media and sanctions — composed across typed sources with zero integration code.</p></div>
+    <div class="card" style="padding:40px 28px;text-align:center">
+      <div class="empty" style="border:0;padding:0">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="7"/><path d="m20 20-3-3"/></svg>
+        <h4>No counterparty selected</h4><p>Search above, or try one of these:</p></div>
+      <div class="chips" id="assess-ex" style="display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:16px">
+        ${ex.map(n=>`<button class="chip" data-q="${esc(n)}">${esc(titleCase(n))}</button>`).join("")}
+      </div>
+    </div>`;
+}
+const ASM_SOURCES = [
+  {nm:"GLEIF — Identity",     dt:"Global LEI registry",                 ico:'M12 2 2 7l10 5 10-5z M2 17l10 5 10-5 M2 12l10 5 10-5'},
+  {nm:"gcloud-intel — Risk",  dt:"PSC ownership + insolvency · 21M+",    ico:'M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z'},
+  {nm:"News + Social",        dt:"Google News · HN · Reddit · Bluesky",  ico:'M4 11a9 9 0 0 1 9 9 M4 4a16 16 0 0 1 16 16 M5 19a1 1 0 1 0 0 2 1 1 0 0 0 0-2z'},
+  {nm:"Sanctions",            dt:"OFAC SDN · UK OFSI · EU consolidated", ico:'M12 2 2 7l10 5 10-5z M2 17l10 5 10-5 M2 12l10 5 10-5'},
+];
+function renderAssess(name){
+  const v=$("#view-assess");
+  // assembling state
+  v.innerHTML = assemblingHTML(name);
+  const startedDone = key(name) && CACHE.has(key(name)+"|full");
+  // animate the source list (purely cosmetic until data lands)
+  let i=0;
+  const stepDelays = startedDone ? [40,90,140,190] : [500,1400,2600,3500];
+  const timers=[];
+  ASM_SOURCES.forEach((_,idx)=>{
+    timers.push(setTimeout(()=>{
+      const node=$(`#asm-${idx}`); if(node){ node.classList.add("done"); const st=node.querySelector(".asm-st"); if(st){st.textContent="resolved"; st.classList.add("ok"); st.previousElementSibling?.remove?.();} }
+    }, stepDelays[idx]));
+  });
+
+  getBrain(name,{full:true}).then(data=>{
+    timers.forEach(clearTimeout);
+    const m=vm(data);
+    paintAssess(v,m);
+    // update monitoring baseline
+    const bands=load(LS_BANDS,{}); if(m.band){bands[key(name)]=m.band; save(LS_BANDS,bands);}
+  }).catch(err=>{
+    timers.forEach(clearTimeout);
+    v.innerHTML = `
+      <div class="page-head"><div class="page-eyebrow">Assess</div><h1 class="page-title">${esc(titleCase(name))}</h1></div>
+      <div class="err-banner"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4M12 17h.01"/><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg>
+      <div><b>Couldn't assemble this dossier.</b><div style="margin-top:2px">${esc(err.message)} — the Orbital backend may be gated or offline. <a href="#" id="retryA">Retry</a></div></div></div>`;
+    $("#retryA")?.addEventListener("click",e=>{e.preventDefault(); CACHE.delete(key(name)+"|full"); renderAssess(name);});
+  });
+}
+function assemblingHTML(name){
+  const rows = ASM_SOURCES.map((s,i)=>`
+    <div class="asm-src" id="asm-${i}">
+      <div class="asm-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="${s.ico}"/></svg></div>
+      <div><div class="asm-nm">${esc(s.nm)}</div><div class="asm-dt">${esc(s.dt)}</div></div>
+      <svg class="asm-pulse" viewBox="0 0 16 16" fill="var(--accent)"><circle cx="8" cy="8" r="4"/></svg>
+      <span class="asm-st">resolving…</span>
+    </div>`).join("");
+  return `
+    <div class="page-head"><div class="page-eyebrow">Assess</div><h1 class="page-title">${esc(titleCase(name))}</h1></div>
+    <div class="card assembling">
+      <div class="asm-h">
+        <span class="asm-spin"></span>
+        <div><div class="asm-title">Assembling decision-grade dossier</div>
+        <div class="asm-sub">Orbital is routing one question across independent typed sources — no integration code.</div></div>
+      </div>
+      <div class="asm-srcs">${rows}</div>
+    </div>`;
+}
+
+function paintAssess(v,m){
+  v.innerHTML="";
+  // print header (only visible when printing)
+  v.appendChild(printHeader(m));
+
+  // ----- dossier header -----
+  const head=el("div","card card-pad");
+  head.innerHTML=`
+    <div class="dossier-head">
+      <div>
+        <div class="dh-name"><span class="co-ava" style="width:34px;height:34px;border-radius:8px;font-size:12px;${avaStyle(m.name)}">${esc(initials(m.name))}</span>${esc(titleCase(m.name))}
+          <span class="pill ${bandClass(m.band)}" style="margin-left:2px"><span class="dot"></span>${esc(m.band||"N/A")}</span></div>
+        <div class="dh-meta">
+          ${kv("Companies House",m.number?("#"+m.number):"—")}
+          ${kv("Status",m.status||"—")}
+          ${kv("Incorporated",m.incorporated||"—")}
+          ${kv("Postcode",m.postcode||"—")}
+          ${kv("LEI",m.lei||"Not registered",!m.lei)}
+        </div>
+      </div>
+      <div class="no-print" style="display:flex;gap:8px">
+        <button class="btn" id="a-watch"></button>
+        <button class="btn btn-primary" id="a-export"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>Export</button>
+      </div>
+    </div>`;
+  v.appendChild(head);
+  v.appendChild(el("div","spacer"));
+
+  // ----- verdict -----
+  v.appendChild(verdictBlock(m));
+  v.appendChild(el("div","spacer"));
+
+  // ----- risk flags -----
+  if(m.flags.length){
+    const sec=el("div");
+    sec.appendChild(sectionH("Risk flags",`${m.flags.length} raised`));
+    const grid=el("div","flags");
+    [...m.flags].sort((a,b)=>({high:0,med:1,low:2}[a.sev]??9)-({high:0,med:1,low:2}[b.sev]??9)).forEach(f=>{
+      grid.appendChild(flagCard(f));
+    });
+    sec.appendChild(grid);
+    v.appendChild(sec);
+    v.appendChild(el("div","spacer"));
+  }
+
+  // ----- ownership-failure network (HERO) -----
+  v.appendChild(networkHero(m));
+  v.appendChild(el("div","spacer"));
+
+  // ----- dossier 2-col: identity+people / sanctions+media -----
+  const doss=el("div","doss");
+  doss.appendChild(identityPeoplePanel(m));
+  doss.appendChild(sanctionsMediaPanel(m));
+  v.appendChild(doss);
+  v.appendChild(el("div","spacer"));
+
+  // ----- full-dossier cards (only present when ?full=1; each null-safe) -----
+  fullDossierCards(v,m);
+
+  // ----- lineage -----
+  if(m.lineage) v.appendChild(lineagePanel(m));
+
+  // wire buttons
+  const watching = getWatch().some(x=>key(x)===key(m.name));
+  const wb=$("#a-watch");
+  function paintWatchBtn(){
+    const on=getWatch().some(x=>key(x)===key(m.name));
+    wb.innerHTML = on
+      ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Monitoring'
+      : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>Add to watchlist';
+  }
+  paintWatchBtn();
+  wb.addEventListener("click",()=>{
+    if(getWatch().some(x=>key(x)===key(m.name))) removeFromWatch(m.name); else addToWatch(m.name);
+    paintWatchBtn();
+  });
+  $("#a-export").addEventListener("click",()=>window.print());
+}
+function kv(label,val,muted){ return `<div class="kv ${muted?"muted":""}"><span class="lbl">${esc(label)}</span><b>${esc(val)}</b></div>`; }
+function sectionH(t,ct){
+  const e=el("div","section-h"); e.innerHTML=`<h3>${esc(t)}</h3><span class="ln"></span>${ct?`<span class="ct">${esc(ct)}</span>`:""}`; return e;
+}
+function printHeader(m){
+  const e=el("div","print-head");
+  e.innerHTML=`
+    <div class="pl"><svg width="22" height="22" viewBox="0 0 32 32"><rect width="32" height="32" rx="8" fill="#3538CD"/><ellipse cx="16" cy="16" rx="9" ry="3.6" stroke="#fff" stroke-width="1.6" fill="none"/><circle cx="16" cy="16" r="3.4" fill="#fff"/></svg>
+      <div><b>Orbital Risk</b> · Counterparty Assessment</div></div>
+    <div class="pr">${esc(titleCase(m.name))}${m.number?" · No. "+esc(m.number):""}<br>Generated ${esc(nowClock())}</div>`;
+  return e;
+}
+
+/* ----- verdict block with SVG gauge ----- */
+function verdictBlock(m){
+  const e=el("div","verdict "+bandClass(m.band));
+  const score = m.score==null?0:m.score;
+  const col = bandColor(m.band);
+  const R=52, C=2*Math.PI*R, off=C*(1-score/100);
+  const verdictSentence = m.verdict ? m.verdict.replace(/^(RED|AMBER|GREEN)\s+\d+\/100\s+—\s+/,"") : "Assessment complete.";
+  e.innerHTML=`
+    <div class="gauge">
+      <svg width="128" height="128" viewBox="0 0 128 128">
+        <circle cx="64" cy="64" r="${R}" fill="none" stroke="var(--line)" stroke-width="11"/>
+        <circle cx="64" cy="64" r="${R}" fill="none" stroke="${col}" stroke-width="11" stroke-linecap="round"
+          stroke-dasharray="${C.toFixed(1)}" stroke-dashoffset="${C.toFixed(1)}" transform="rotate(-90 64 64)" style="transition:stroke-dashoffset 1s cubic-bezier(.4,0,.2,1)">
+        </circle>
+      </svg>
+      <div class="lab"><span class="num" style="color:${col}">${score}</span><span class="den">/ 100 risk</span></div>
+    </div>
+    <div class="verdict-body">
+      <span class="verdict-band"><span style="width:8px;height:8px;border-radius:50%;background:${col};box-shadow:0 0 0 3px ${col}22"></span>${esc(m.band||"ASSESSED")} · ${score<=20?"low":score<=55?"elevated":"severe"} risk</span>
+      <div class="verdict-sentence">${esc(verdictSentence)}</div>
+      <div class="reco">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+        <div><b>Recommendation.</b> ${esc(m.recommendation||"No blockers found on automated checks.")}</div>
+      </div>
+    </div>`;
+  // animate gauge after mount
+  requestAnimationFrame(()=>{ const c=e.querySelector(".gauge circle:last-of-type"); if(c) c.style.strokeDashoffset=off.toFixed(1); });
+  return e;
+}
+function flagCard(f){
+  const e=el("div","flag "+(["high","med","low"].includes(f.sev)?f.sev:"low"));
+  const sevTxt = {high:"High",med:"Medium",low:"Low"}[f.sev]||"Note";
+  e.innerHTML=`<div class="ft"><span class="fl">${esc(f.label||"Flag")}</span><span class="sev">${esc(sevTxt)}</span></div>
+    <div class="fd">${esc(f.detail||"")}</div>`;
+  return e;
+}
+
+/* ----- OWNERSHIP-FAILURE NETWORK (hero SVG) ----- */
+function networkHero(m){
+  const wrap=el("div","net-wrap");
+  const nodes=(m.network&&m.network.nodes)||[];
+  const edges=(m.network&&m.network.edges)||[];
+  const failedCos = nodes.filter(n=>n.type==="company" && !n.subject && n.failed).length;
+  wrap.innerHTML=`
+    <div class="net-top">
+      <h3><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2"><circle cx="5" cy="6" r="2.5"/><circle cx="19" cy="6" r="2.5"/><circle cx="12" cy="18" r="2.5"/><path d="M12 15.5V9M7 7l4 3M17 7l-4 3"/></svg>Ownership-failure network</h3>
+      <span class="ct lbl" style="color:var(--ink-4)">${failedCos>0?`${failedCos} insolvent entities on this branch`:"Direct ownership"}</span>
+    </div>
+    <div id="net-canvas"></div>
+    <div class="legend">
+      <div class="lg"><span class="sw sq" style="background:var(--accent)"></span> Subject company</div>
+      <div class="lg"><span class="sw" style="background:#fff;box-shadow:0 0 0 2px var(--ink-3)"></span> Controller (person)</div>
+      <div class="lg"><span class="sw sq" style="background:var(--red)"></span> Failed / insolvent company</div>
+      <div class="lg"><span style="width:18px;height:0;border-top:2px dashed var(--red-line);display:inline-block"></span> Controls relationship</div>
+    </div>`;
+  wrap.querySelector("#net-canvas").appendChild(buildNetworkSVG(nodes,edges));
+  return wrap;
+}
+function buildNetworkSVG(nodes,edges){
+  const W=960, H=540, cx=W/2;
+  const NS="http://www.w3.org/2000/svg";
+  const svg=document.createElementNS(NS,"svg");
+  svg.setAttribute("viewBox",`0 0 ${W} ${H}`);
+  svg.setAttribute("class","net-svg");
+  svg.setAttribute("role","img");
+  svg.setAttribute("aria-label","Ownership and corporate-failure network graph");
+
+  const byId={}; nodes.forEach(n=>byId[n.id]=n);
+  const subject = nodes.find(n=>n.subject) || nodes.find(n=>n.type==="company") || nodes[0];
+  const people  = nodes.filter(n=>n.type==="person");
+  const failed  = nodes.filter(n=>n.type==="company" && n!==subject);
+  const pos={};
+
+  // Vertical hierarchy that fills the canvas:
+  //   subject company anchored low-centre, its controller(s) in the mid band,
+  //   and the failed/insolvent companies fanned across the top in an even arc.
+  const subjY = H-86;                          // subject sits near the bottom
+  const personY = failed.length ? H*0.50 : H*0.46;
+  if(subject) pos[subject.id]={x:cx,y:subjY};
+
+  const pN=people.length||1;
+  people.forEach((p,i)=>{
+    // a single controller sits on the centre line; multiples spread horizontally
+    const x = pN===1 ? cx : cx + (i-(pN-1)/2) * Math.min(300, (W-200)/Math.max(1,pN-1));
+    pos[p.id]={x, y:personY};
+  });
+
+  const mainPerson = people[0];
+  const anchor = mainPerson ? pos[mainPerson.id] : {x:cx,y:personY};
+  const fN = failed.length||1;
+  // fan failed companies across the top: even angular spacing, alternating radius to stagger labels
+  const topY = 96;
+  const usableW = W-160;
+  failed.forEach((c,i)=>{
+    let x,y;
+    if(fN===1){ x=cx; y=topY+20; }
+    else {
+      x = 80 + usableW * (i/(fN-1));            // spread edge-to-edge
+      const lift = Math.abs((i/(fN-1))-0.5)*2;  // 0 centre -> 1 edges
+      y = topY + lift*70 + (i%2)*22;            // arc dip + stagger so labels never collide
+    }
+    pos[c.id]={x,y};
+  });
+  // clamp into viewbox
+  Object.values(pos).forEach(p=>{ p.x=Math.max(78,Math.min(W-78,p.x)); p.y=Math.max(60,Math.min(H-52,p.y)); });
+
+  // ---- edges ----
+  const gE=document.createElementNS(NS,"g");
+  edges.forEach(e=>{
+    const a=pos[e.from], b=pos[e.to]; if(!a||!b)return;
+    const toNode=byId[e.to];
+    const fail = toNode && toNode.type==="company" && toNode!==subject && toNode.failed;
+    const path=document.createElementNS(NS,"path");
+    const mx=(a.x+b.x)/2, my=(a.y+b.y)/2 - 14;
+    path.setAttribute("d",`M ${a.x} ${a.y} Q ${mx} ${my} ${b.x} ${b.y}`);
+    path.setAttribute("class","net-edge"+(fail?" fail":""));
+    path.setAttribute("stroke-width", fail?"1.4":"1.8");
+    if(fail) path.setAttribute("stroke-dasharray","4 4");
+    gE.appendChild(path);
+  });
+  svg.appendChild(gE);
+
+  // ---- nodes ----
+  const gN=document.createElementNS(NS,"g");
+  function label(x,y,text,dy,cls,weight,fs){
+    const t=document.createElementNS(NS,"text");
+    t.setAttribute("x",x); t.setAttribute("y",y+dy);
+    t.setAttribute("text-anchor","middle");
+    t.setAttribute("class",cls||"net-node-label");
+    if(weight) t.setAttribute("font-weight",weight);
+    t.setAttribute("font-size",fs||11);
+    t.textContent=text;
+    return t;
+  }
+  function chip(label,maxlen){ const s=label||""; return s.length>maxlen?s.slice(0,maxlen-1)+"…":s; }
+
+  // failed companies (draw first, behind)
+  failed.forEach(c=>{
+    const p=pos[c.id]; const g=document.createElementNS(NS,"g");
+    g.style.cursor="default";
+    const r=document.createElementNS(NS,"rect");
+    r.setAttribute("x",p.x-7); r.setAttribute("y",p.y-7); r.setAttribute("width",14); r.setAttribute("height",14); r.setAttribute("rx",3.5);
+    r.setAttribute("fill","var(--red)"); r.setAttribute("stroke","#fff"); r.setAttribute("stroke-width",2);
+    const halo=document.createElementNS(NS,"circle");
+    halo.setAttribute("cx",p.x); halo.setAttribute("cy",p.y); halo.setAttribute("r",11);
+    halo.setAttribute("fill","var(--red)"); halo.setAttribute("opacity",.10);
+    g.appendChild(halo); g.appendChild(r);
+    const nm=label(p.x,p.y,chip(titleCase(c.label),24),22,"net-node-label",500,9.5);
+    nm.setAttribute("fill","#667085");
+    g.appendChild(nm);
+    const tit=document.createElementNS(NS,"title"); tit.textContent=`${c.label} — ${c.status||"failed"}`; g.appendChild(tit);
+    gN.appendChild(g);
+  });
+
+  // people
+  people.forEach(p=>{
+    const pp=pos[p.id]; const g=document.createElementNS(NS,"g");
+    const c=document.createElementNS(NS,"circle");
+    c.setAttribute("cx",pp.x); c.setAttribute("cy",pp.y); c.setAttribute("r",18);
+    c.setAttribute("fill","#fff"); c.setAttribute("stroke","var(--ink-2)"); c.setAttribute("stroke-width",2);
+    const ring=document.createElementNS(NS,"circle");
+    ring.setAttribute("cx",pp.x); ring.setAttribute("cy",pp.y); ring.setAttribute("r",24);
+    ring.setAttribute("fill","none"); ring.setAttribute("stroke","var(--red-line)"); ring.setAttribute("stroke-width",1.5); ring.setAttribute("stroke-dasharray","2 3");
+    g.appendChild(ring); g.appendChild(c);
+    // person glyph
+    const ic=document.createElementNS(NS,"path");
+    ic.setAttribute("d",`M ${pp.x-5} ${pp.y+7} a5 5 0 0 1 10 0 M ${pp.x} ${pp.y-2} m-3.6 -3.6 a3.6 3.6 0 1 0 7.2 0 a3.6 3.6 0 1 0 -7.2 0`);
+    ic.setAttribute("fill","var(--ink-2)");
+    g.appendChild(ic);
+    const nm=label(pp.x,pp.y,chip(p.label,26),38,"net-node-label",600,11);
+    nm.setAttribute("fill","var(--ink)");
+    g.appendChild(nm);
+    if(typeof p.failed==="number" && p.failed>0){
+      const badge=label(pp.x,pp.y,`${p.failed} failed · ${p.controls||"?"} controlled`,51,"net-hover",500,9.5);
+      badge.setAttribute("fill","var(--red)");
+      g.appendChild(badge);
+    }
+    gN.appendChild(g);
+  });
+
+  // subject (centre, on top)
+  if(subject){
+    const p=pos[subject.id]; const g=document.createElementNS(NS,"g");
+    const glow=document.createElementNS(NS,"circle");
+    glow.setAttribute("cx",p.x); glow.setAttribute("cy",p.y); glow.setAttribute("r",34);
+    glow.setAttribute("fill","var(--accent)"); glow.setAttribute("opacity",.08);
+    const r=document.createElementNS(NS,"rect");
+    r.setAttribute("x",p.x-22); r.setAttribute("y",p.y-22); r.setAttribute("width",44); r.setAttribute("height",44); r.setAttribute("rx",11);
+    r.setAttribute("fill","var(--accent)"); r.setAttribute("stroke","#fff"); r.setAttribute("stroke-width",3);
+    g.appendChild(glow); g.appendChild(r);
+    const ini=label(p.x,p.y,initials(subject.label),5,"net-hover",700,13); ini.setAttribute("fill","#fff");
+    g.appendChild(ini);
+    const nm=label(p.x,p.y,chip(titleCase(subject.label),30),46,"net-node-label",700,12.5); nm.setAttribute("fill","var(--ink)");
+    g.appendChild(nm);
+    const sub=label(p.x,p.y,"subject counterparty",61,"net-hover",500,9.5); sub.setAttribute("fill","var(--accent)");
+    g.appendChild(sub);
+    gN.appendChild(g);
+  }
+  svg.appendChild(gN);
+  return svg;
+}
+
+/* ----- identity + people panel ----- */
+function identityPeoplePanel(m){
+  const card=el("div","card card-pad");
+  const ctrlHTML = m.controllers.length ? m.controllers.map(c=>{
+    const rights=parseControl(c.control);
+    return `<div class="person">
+      <div class="p-ava">${esc(initials(c.name))}</div>
+      <div style="min-width:0">
+        <div class="p-name">${esc(c.name||"Unknown person")}</div>
+        <div class="p-ctrl">${rights.length?rights.map(r=>`<span class="ctrl-chip">${esc(r)}</span>`).join(""):'<span class="ctrl-chip">control details on file</span>'}</div>
+      </div></div>`;
+  }).join("") : `<div style="color:var(--ink-4);font-size:13px;padding:4px 0">No individual controllers on record — ownership is via corporate entities.</div>`;
+  card.innerHTML=`
+    <div class="panel-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>Identity</div>
+    <dl class="def">
+      <dt>Legal name</dt><dd>${esc(titleCase(m.name))}</dd>
+      <dt>CH number</dt><dd>${esc(m.number||"—")}</dd>
+      <dt>Status</dt><dd>${esc(m.status||"—")}</dd>
+      <dt>Incorporated</dt><dd>${esc(m.incorporated||"—")}</dd>
+      <dt>Registered postcode</dt><dd>${esc(m.postcode||"—")}</dd>
+      <dt>LEI</dt><dd>${esc(m.lei||"Not registered")}</dd>
+    </dl>
+    <div class="panel-title" style="margin-top:22px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>The people · controllers</div>
+    <div class="people-list">${ctrlHTML}</div>`;
+  return card;
+}
+
+/* ----- sanctions + adverse media panel ----- */
+function sanctionsMediaPanel(m){
+  const card=el("div","card card-pad");
+  const s=m.sanctions;
+  let sancHTML="";
+  if(s){
+    const clear = s.clear!==false && (s.status!=="hit") && !(s.hitCount>0);
+    if(clear){
+      sancHTML=`
+        <div class="sanc-banner clear">
+          <div class="sanc-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12l2 2 4-4"/><circle cx="12" cy="12" r="9"/></svg></div>
+          <div><b>No sanctions matches</b><div class="sub">Screened against ${(s.listsChecked||[]).length} watchlists${s.totalNames?` · ${Number(s.totalNames).toLocaleString()} names`:""}</div></div>
+        </div>
+        <div class="lists">${(s.listsChecked||[]).map(l=>`<div class="list-row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>${esc(l)}</div>`).join("")}</div>`;
+    } else {
+      const hits=Array.isArray(s.hits)?s.hits:[];
+      sancHTML=`
+        <div class="sanc-banner hit">
+          <div class="sanc-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4M12 17h.01"/><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg></div>
+          <div><b>${s.hitCount||hits.length} sanctions ${(s.hitCount||hits.length)===1?"match":"matches"}</b><div class="sub">Escalate to enhanced due diligence immediately.</div></div>
+        </div>
+        ${hits.map(h=>`<div class="hit-row"><div><div class="hn">${esc(h.name||"—")}</div><div class="hm">${esc(h.list||"")}${h.program?" · "+esc(h.program):""}</div></div><div class="hm" style="text-align:right">${h.score!=null?("match "+Math.round(h.score*100)+"%"):""}</div></div>`).join("")}
+        <div class="lists" style="margin-top:8px">${(s.listsChecked||[]).map(l=>`<div class="list-row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M20 6 9 17l-5-5"/></svg>${esc(l)}</div>`).join("")}</div>`;
+    }
+    if(s.asOf) sancHTML+=`<div style="font-family:var(--mono);font-size:10.5px;color:var(--ink-4);margin-top:10px">Lists as of ${esc(s.asOf)}</div>`;
+  } else {
+    sancHTML=`<div style="color:var(--ink-4);font-size:13px">Sanctions screening not returned for this query.</div>`;
+  }
+
+  const media=m.media||[];
+  const chanName={news:"News",hackernews:"HN",reddit:"RDT",bluesky:"BSky"};
+  const mediaHTML = media.length ? media.slice(0,8).map(it=>{
+    const ch=(it.channel||"news").toLowerCase();
+    return `<div class="media-item">
+      <div class="chan ${esc(ch)}">${esc(chanName[ch]||"WEB")}</div>
+      <div class="media-b">
+        ${it.url?`<a class="media-t" href="${esc(it.url)}" target="_blank" rel="noopener noreferrer">${esc(it.title||"Untitled")}</a>`:`<div class="media-t">${esc(it.title||"Untitled")}</div>`}
+        <div class="media-m"><span class="src">${esc(it.source||ch)}</span><span class="dotsep"></span><span>${esc(fmtDate(it.date))}</span>${it.url?'<span class="dotsep"></span><span>↗</span>':""}</div>
+      </div></div>`;
+  }).join("") : `<div style="color:var(--ink-4);font-size:13px;padding:4px 0">No adverse media surfaced across monitored channels.</div>`;
+
+  card.innerHTML=`
+    <div class="panel-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>Sanctions screening</div>
+    ${sancHTML}
+    <div class="panel-title" style="margin-top:22px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16a2 2 0 0 1-2 2zm0 0a2 2 0 0 1-2-2v-9c0-1.1.9-2 2-2h2"/><path d="M18 14h-8M15 18h-5M10 6h8v4h-8z"/></svg>Adverse media${media.length?` · ${media.length}`:""}</div>
+    <div class="media-list">${mediaHTML}</div>`;
+  return card;
+}
+
+/* ----- lineage panel (the Orbital differentiator) -----
+   The complete "behind the scenes": the FULL TaxiQL that ran, each typed
+   source as a clear row with the real endpoint + its FULL .taxi on demand,
+   the hop Orbital invented, and WHY this approach wins. Light SaaS style. */
+function lineagePanel(m){
+  const L=m.lineage; const sources=Array.isArray(L.sources)?L.sources:[];
+  const totalRows = sources.reduce((a,s)=>a+(Number(s.rows)||0),0);
+  const ms = L.totalMs!=null?L.totalMs:null;
+  const taxiql = L.taxiql || L.query || "";
+  const why = Array.isArray(L.why)?L.why:[];
+  const wrap=el("div","lineage");
+
+  // --- header (badge + the one question + headline stats) ---
+  wrap.innerHTML=`
+    <div class="lin-top">
+      <div>
+        <div class="lin-badge"><span class="spark"></span>How Orbital assembled this</div>
+        <div style="font-family:var(--mono);font-size:11px;color:var(--ink-3);margin-top:9px">${esc(L.query||"")}</div>
+      </div>
+      <div class="lin-stats">
+        <div class="lin-stat"><div class="v tnum">${sources.length}</div><div class="k">Typed sources</div></div>
+        <div class="lin-stat"><div class="v acc tnum">0</div><div class="k">Integrations written</div></div>
+        <div class="lin-stat"><div class="v tnum">${ms!=null?ms.toLocaleString()+"<span style='font-size:11px;color:var(--ink-4)'>ms</span>":"—"}</div><div class="k">Assembled in</div></div>
+      </div>
+    </div>`;
+
+  // --- (a) the FULL TaxiQL query that ran ---
+  if(taxiql){
+    const q=el("div");
+    q.innerHTML=`
+      <div class="lin-intro"><div class="h">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 18 22 12 16 6"/><path d="M8 6 2 12 8 18"/></svg>
+        The one typed query Orbital ran</div></div>
+      <div class="lin-taxiql">
+        <div class="top"><span class="lbl">TaxiQL — generated &amp; executed live · zero glue code</span><span class="dots"><i></i><i></i><i></i></span></div>
+        <pre>${highlightTaxiQL(taxiql)}</pre>
+      </div>`;
+    wrap.appendChild(q);
+  }
+
+  // --- (b) each source: type ← .taxi file · operation · endpoint · N rows, + full .taxi ---
+  const sec=el("div","lin-sec");
+  sec.innerHTML=`<div class="h">The typed sources it composed — each described once in Taxi</div>`;
+  sources.forEach((s,i)=>{
+    const card=el("div","lsrc");
+    const type=esc(s.type||s.node||"—");
+    const file=esc(s.taxiFile||"—");
+    const op=esc(s.operation||"");
+    const rows=Number(s.rows||0);
+    const head=el("div","lsrc-head");
+    head.innerHTML=
+      `<div class="lsrc-num">${i+1}</div>`+
+      `<div class="lsrc-body">`+
+        `<div class="lsrc-title">`+
+          `<span class="lsrc-type">${type}</span>`+
+          `<span class="lsrc-arrow">&larr;</span>`+
+          `<span class="lsrc-file">${file}</span>`+
+          (op?`<span class="lsrc-dot"></span><span class="lsrc-op">${op}</span>`:"")+
+        `</div>`+
+        (s.endpoint?`<div class="lsrc-ep">`+
+          `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.8 1.7"/><path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.8-1.7"/></svg>`+
+          `<span class="m">${esc(s.endpoint)}</span></div>`:"")+
+      `</div>`+
+      `<div class="lsrc-rows"><b>${rows.toLocaleString()}</b><span>${rows===1?"row":"rows"} · ${esc(s.auth||"none")}</span></div>`;
+    card.appendChild(head);
+    // expandable full .taxi
+    const full=s.schemaFull||s.schema||"";
+    if(full){
+      const btn=el("button","lsrc-toggle"); btn.type="button";
+      btn.innerHTML=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></svg><span>view full .taxi</span>`;
+      const pane=el("div","lsrc-taxi hide");
+      pane.innerHTML=`<pre>${esc(full)}</pre>`;
+      btn.addEventListener("click",()=>{
+        const open=pane.classList.toggle("hide")===false;
+        btn.classList.toggle("open",open);
+        card.classList.toggle("open",open);
+        btn.querySelector("span").textContent=open?`hide ${esc(file)}`:"view full .taxi";
+      });
+      card.appendChild(btn); card.appendChild(pane);
+    }
+    sec.appendChild(card);
+  });
+  wrap.appendChild(sec);
+
+  // --- (c) the invented-hop callout ---
+  if(L.invented){
+    const inv=el("div");
+    inv.innerHTML=`<div class="invented" style="margin:14px 20px 0">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 3v4M3 5h4M6 17v4M4 19h4"/><path d="M13 3l3.5 8.5L25 15l-8.5 3.5L13 27l-3.5-8.5L1 15l8.5-3.5z" transform="scale(.7) translate(4 1)"/></svg>
+      <div><div class="it">Orbital invented this hop</div><div class="ix">${esc(L.invented)}</div></div>
+    </div>`;
+    wrap.appendChild(inv);
+  }
+
+  // --- (d) prominent "Why this matters" ---
+  if(why.length){
+    const ck='<span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span>';
+    const w=el("div","lin-why");
+    w.innerHTML=`
+      <div class="wh"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v4M12 18v4M4.9 4.9l2.8 2.8M16.3 16.3l2.8 2.8M2 12h4M18 12h4M4.9 19.1l2.8-2.8M16.3 7.7l2.8-2.8"/></svg>Why this matters</div>
+      <ul>${why.map(pt=>{
+        const t=String(pt);
+        const di=t.indexOf("—")>=0?t.indexOf("—"):t.indexOf(" - ");
+        const html = di>0
+          ? `<b>${esc(t.slice(0,di).trim())}</b> — ${esc(t.slice(di+1).replace(/^[—-]\s*/,"").trim())}`
+          : esc(t);
+        return `<li>${ck}<span>${html}</span></li>`;
+      }).join("")}</ul>`;
+    wrap.appendChild(w);
+  }
+
+  return wrap;
+}
+
+/* ============================================================
+   FULL DOSSIER CARDS  (rendered only when ?full=1 returns them)
+   Each renderer returns an element or null; null/empty -> skipped.
+   ============================================================ */
+function isNum(n){ return typeof n==="number" && isFinite(n); }
+function fmtGBP(n){
+  if(!isNum(n)) return "—";
+  // compact, decision-grade: £1.2m / £840k / £12,500
+  const abs=Math.abs(n);
+  if(abs>=1e9) return "£"+(n/1e9).toFixed(abs>=1e10?0:1).replace(/\.0$/,"")+"bn";
+  if(abs>=1e6) return "£"+(n/1e6).toFixed(abs>=1e7?0:1).replace(/\.0$/,"")+"m";
+  if(abs>=1e3) return "£"+Math.round(n/1e3)+"k";
+  return "£"+Math.round(n).toLocaleString();
+}
+function fdSection(title,countTxt){
+  // a card carrying a section header + body, matching existing card/section styling
+  const card=el("div","card card-pad");
+  card.appendChild(sectionH(title,countTxt));
+  const body=el("div"); card.appendChild(body);
+  return {card,body};
+}
+function fullDossierCards(v,m){
+  const cards=[
+    peopleScreeningCard(m),
+    chLiveCard(m),
+    uboCard(m),
+    contractsCard(m),
+    narrativeCard(m),
+    propertyCard(m),
+  ].filter(Boolean);
+  if(!cards.length) return;
+  const sec=el("div","doss");           // reuse the responsive 2-col grid
+  cards.forEach(c=>sec.appendChild(c));
+  v.appendChild(sec);
+  v.appendChild(el("div","spacer"));
+}
+
+/* ----- 1) Controllers screened (peopleScreening) ----- */
+function peopleScreeningCard(m){
+  const ps=m.peopleScreening;
+  const people=ps && Array.isArray(ps.people)?ps.people:[];
+  if(!ps || !people.length) return null;
+  const screened=isNum(ps.screened)?ps.screened:people.length;
+  const flagged=isNum(ps.flaggedCount)?ps.flaggedCount:people.filter(p=>p&&p.flagged).length;
+  const {card,body}=fdSection("Controllers screened",`${screened} screened · ${flagged} flagged`);
+  body.className="people-list";
+  body.innerHTML=people.map(p=>{
+    const name=esc(p&&p.name||"Unknown person");
+    const ctrl=p&&p.control?`<div class="p-ctrl"><span class="ctrl-chip">${esc(p.control)}</span></div>`:"";
+    const hit=p&&p.sanctionsStatus==="hit";
+    const adverse=p&&isNum(p.adverseMediaCount)&&p.adverseMediaCount>0;
+    const flaggedRow = p&&p.flagged;
+    let pill;
+    if(flaggedRow && hit){
+      const n=isNum(p.sanctionsHits)&&p.sanctionsHits>0?` (${p.sanctionsHits})`:"";
+      pill=`<span class="pill RED"><span class="dot"></span>flagged: sanctions${esc(n)}</span>`;
+    } else if(flaggedRow && adverse){
+      pill=`<span class="pill RED"><span class="dot"></span>flagged: adverse media</span>`;
+    } else if(flaggedRow){
+      pill=`<span class="pill RED"><span class="dot"></span>flagged</span>`;
+    } else if(p&&p.sanctionsStatus==="unknown"){
+      pill=`<span class="pill NEU"><span class="dot"></span>unscreened</span>`;
+    } else {
+      pill=`<span class="pill GREEN"><span class="dot"></span>clear</span>`;
+    }
+    const adverseNote = adverse && !flaggedRow
+      ? `<span class="ctrl-chip" style="color:var(--ink-3)">${p.adverseMediaCount} adverse mention${p.adverseMediaCount===1?"":"s"}</span>` : "";
+    const adverseFlagged = adverse && flaggedRow
+      ? `<div class="p-ctrl"><span class="ctrl-chip" style="color:#912018;background:var(--red-bg);border-color:var(--red-line)">${p.adverseMediaCount} adverse mention${p.adverseMediaCount===1?"":"s"}</span></div>` : "";
+    return `<div class="person">
+      <div class="p-ava">${esc(initials(p&&p.name||"?"))}</div>
+      <div style="min-width:0;flex:1">
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap"><span class="p-name">${name}</span>${pill}${adverseNote}</div>
+        ${ctrl}${adverseFlagged}
+      </div></div>`;
+  }).join("");
+  return card;
+}
+
+/* ----- 2) Official record · live (companiesHouseLive) ----- */
+function chLiveCard(m){
+  const ch=m.companiesHouseLive;
+  if(!ch) return null;
+  const {card,body}=fdSection("Official record · live", ch.available===false ? "" : "Companies House");
+  if(ch.available===false){
+    body.innerHTML=`<div style="color:var(--ink-4);font-size:13px;padding:2px 0;display:flex;align-items:center;gap:9px">
+      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" style="color:var(--ink-4);flex:none"><circle cx="12" cy="12" r="9"/><path d="M12 8v4M12 16h.01"/></svg>
+      Connect a Companies House key to show live officers &amp; charges</div>`;
+    return card;
+  }
+  const officers=Array.isArray(ch.officers)?ch.officers:[];
+  const charges=ch.charges||null;
+  const filings=Array.isArray(ch.latestFilings)?ch.latestFilings:[];
+  let html="";
+  if(officers.length){
+    html+=`<div class="panel-title" style="margin-top:0"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>Active officers</div>
+      <div class="people-list">${officers.map(o=>`<div class="person">
+        <div class="p-ava">${esc(initials(o&&o.name||"?"))}</div>
+        <div style="min-width:0">
+          <div class="p-name">${esc(o&&o.name||"—")}</div>
+          <div class="p-ctrl">${o&&o.role?`<span class="ctrl-chip">${esc(o.role)}</span>`:""}${o&&o.appointedOn?`<span class="ctrl-chip" style="color:var(--ink-3)">appointed ${esc(fmtDate(o.appointedOn))}</span>`:""}</div>
+        </div></div>`).join("")}</div>`;
+  }
+  if(charges && (isNum(charges.total)||isNum(charges.outstanding))){
+    const out=isNum(charges.outstanding)?charges.outstanding:0;
+    const tot=isNum(charges.total)?charges.total:out;
+    const outClass = out>0?'style="color:var(--red);font-weight:700"':'style="color:var(--green);font-weight:700"';
+    html+=`<div class="def" style="margin-top:${officers.length?"16px":"0"}">
+      <dt>Charges</dt><dd class="tnum"><span ${outClass}>${out}</span> of ${tot} outstanding${charges.topHolder?` · held by ${esc(charges.topHolder)}`:""}</dd>
+    </div>`;
+  }
+  if(filings.length){
+    html+=`<div class="panel-title" style="margin-top:18px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>Latest filings</div>
+      <div class="people-list">${filings.slice(0,3).map(f=>`<div class="person" style="align-items:baseline">
+        <div class="mono" style="font-size:11px;color:var(--ink-4);white-space:nowrap;min-width:64px">${esc(fmtDate(f&&f.date))}</div>
+        <div style="min-width:0"><div style="font-size:13px;color:var(--ink);letter-spacing:-0.01em">${esc(f&&f.description||f&&f.category||"Filing")}</div></div>
+      </div>`).join("")}</div>`;
+  }
+  if(!html) html=`<div style="color:var(--ink-4);font-size:13px;padding:2px 0">Live record available — no officers or charges returned.</div>`;
+  body.innerHTML=html;
+  return card;
+}
+
+/* ----- 3) Ultimate ownership (ubo) ----- */
+function uboCard(m){
+  const u=m.ubo;
+  if(!u) return null;
+  const {card,body}=fdSection("Ultimate ownership","");
+  const link=(label,sub)=>`<div style="display:inline-flex;flex-direction:column;gap:1px;min-width:0">
+      <span style="font-weight:600;font-size:13.5px;letter-spacing:-0.01em">${esc(label)}</span>
+      ${sub?`<span class="mono" style="font-size:10px;color:var(--ink-4)">${esc(sub)}</span>`:""}</div>`;
+  const arrow=`<span class="via-arrow" style="font-size:14px">→</span>`;
+  const chain=[];
+  chain.push(link(titleCase(u.name||m.name),"subject"));
+  if(u.directParent && u.directParent.name) chain.push(link(titleCase(u.directParent.name), u.directParent.country||"direct parent"));
+  if(u.ultimateParent && u.ultimateParent.name && (!u.directParent || key(u.ultimateParent.name)!==key(u.directParent.name)))
+    chain.push(link(titleCase(u.ultimateParent.name), u.ultimateParent.country||"ultimate parent"));
+  const hasParent = (u.directParent && u.directParent.name) || (u.ultimateParent && u.ultimateParent.name);
+  let html=`<div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">${chain.join(arrow)}</div>`;
+  if(!hasParent){
+    html=`<div style="color:var(--ink-3);font-size:13px;display:flex;align-items:center;gap:9px">
+      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" style="color:var(--ink-4);flex:none"><circle cx="12" cy="12" r="9"/><path d="M9 12l2 2 4-4"/></svg>
+      No parent on record (independent)</div>`;
+  }
+  if(isNum(u.childCount) && u.childCount>0){
+    const kids=Array.isArray(u.sampleChildren)?u.sampleChildren.filter(Boolean):[];
+    html+=`<div class="def" style="margin-top:16px">
+      <dt>Subsidiaries</dt><dd class="tnum">${u.childCount}</dd>
+    </div>`;
+    if(kids.length){
+      html+=`<div class="p-ctrl" style="margin-top:8px">${kids.slice(0,6).map(c=>`<span class="ctrl-chip">${esc(titleCase(c))}</span>`).join("")}</div>`;
+    }
+  }
+  body.innerHTML=html;
+  return card;
+}
+
+/* ----- 4) Public-sector exposure (contracts) ----- */
+function contractsCard(m){
+  const c=m.contracts;
+  if(!c) return null;
+  const count=isNum(c.contractCount)?c.contractCount:0;
+  const {card,body}=fdSection("Public-sector exposure",
+    count>0 ? `${count} contract${count===1?"":"s"} · ${fmtGBP(c.totalValue)} · ${isNum(c.liveCount)?c.liveCount:0} live` : "");
+  if(count===0){
+    body.innerHTML=`<div style="color:var(--ink-4);font-size:13px;padding:2px 0">No public-sector contracts found</div>`;
+    return card;
+  }
+  const top=Array.isArray(c.topContracts)?c.topContracts:[];
+  let html="";
+  if(top.length){
+    html=`<div class="people-list">${top.slice(0,5).map(t=>{
+      const live=t&&typeof t.status==="string"&&/live|active|current/i.test(t.status);
+      return `<div class="person" style="align-items:flex-start">
+        <div style="min-width:0;flex:1">
+          <div style="font-weight:600;font-size:13px;letter-spacing:-0.01em">${esc(t&&t.title||"Contract")}</div>
+          <div class="p-ctrl">
+            ${t&&t.buyer?`<span class="ctrl-chip">${esc(t.buyer)}</span>`:""}
+            ${t&&t.status?`<span class="ctrl-chip" ${live?'style="color:#067647;background:var(--green-bg);border-color:var(--green-line)"':""}>${esc(t.status)}</span>`:""}
+            ${t&&t.date?`<span class="ctrl-chip" style="color:var(--ink-3)">${esc(fmtDate(t.date))}</span>`:""}
+          </div>
+        </div>
+        <div class="mono tnum" style="font-size:12.5px;font-weight:600;white-space:nowrap;margin-left:8px">${esc(fmtGBP(t&&t.value))}</div>
+      </div>`;
+    }).join("")}</div>`;
+  } else {
+    html=`<div class="def"><dt>Total value</dt><dd class="tnum">${esc(fmtGBP(c.totalValue))}</dd></div>`;
+  }
+  body.innerHTML=html;
+  return card;
+}
+
+/* ----- 5) AI risk summary (narrative) ----- */
+function narrativeCard(m){
+  const n=m.narrative;
+  if(!n || (!n.narrative && !n.recommendation)) return null;
+  const {card,body}=fdSection("AI risk summary", n.band?String(n.band):"");
+  const bandPill = n.band && ["RED","AMBER","GREEN"].includes(String(n.band).toUpperCase())
+    ? `<span class="pill ${bandClass(String(n.band).toUpperCase())}" style="margin-bottom:11px"><span class="dot"></span>${esc(String(n.band).toUpperCase())}</span>` : "";
+  body.innerHTML=`
+    ${bandPill}
+    ${n.narrative?`<div style="font-size:14px;line-height:1.6;letter-spacing:-0.01em;color:var(--ink)">${esc(n.narrative)}</div>`:""}
+    ${n.recommendation?`<div class="reco" style="margin-top:13px">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--accent)"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+      <div><b>Recommendation.</b> ${esc(n.recommendation)}</div></div>`:""}
+    ${n.model?`<div style="font-family:var(--mono);font-size:10.5px;color:var(--ink-4);margin-top:12px">generated locally (${esc(n.model)})</div>`:""}`;
+  return card;
+}
+
+/* ----- 6) Property value (HM Land Registry, postcode-keyed via deeptech-dd) ----- */
+function propertyCard(m){
+  const p=m.property;
+  if(!p) return null;
+  const avg=isNum(p.averageSoldPrice)?p.averageSoldPrice:null;
+  const gbp=v=>isNum(v)?"£"+Math.round(v).toLocaleString("en-GB"):"—";
+  // commercial postcode still resolving the slow area scan — soft placeholder, no hard number yet
+  if(avg===null){
+    const {card,body}=fdSection("Property value","HM Land Registry");
+    body.innerHTML=`<div style="font-size:13px;line-height:1.6;color:var(--ink-3)">${esc(p.note||"Computing area value from HM Land Registry — refresh in a moment.")}</div>`;
+    return card;
+  }
+  const n=isNum(p.transactionCount)?p.transactionCount:0;
+  const {card,body}=fdSection("Property value",`${n.toLocaleString("en-GB")} sales`);
+  const range=(isNum(p.lowestPrice)&&isNum(p.highestPrice))?`${gbp(p.lowestPrice)} – ${gbp(p.highestPrice)}`:"";
+  const yr=isNum(p.latestSaleYear)?`to ${p.latestSaleYear}`:"";
+  const ptype=p.topPropertyType?esc(p.topPropertyType):"";
+  body.innerHTML=`
+    <div style="display:flex;align-items:baseline;gap:10px;flex-wrap:wrap">
+      <div style="font-size:26px;font-weight:650;letter-spacing:-0.02em;color:var(--ink)">${gbp(avg)}</div>
+      <div style="font-size:12px;color:var(--ink-3)">average sold price ${esc(yr)}</div>
+    </div>
+    ${isNum(p.medianSoldPrice)?`<div style="font-size:12.5px;color:var(--ink-3);margin-top:4px">median ${gbp(p.medianSoldPrice)}</div>`:""}
+    ${range?`<div style="font-size:12.5px;color:var(--ink-3);margin-top:6px">range ${esc(range)}</div>`:""}
+    ${ptype?`<div style="margin-top:10px"><span class="ctrl-chip">${ptype}</span></div>`:""}
+    ${p.note?`<div style="font-family:var(--mono);font-size:10.5px;color:var(--ink-4);margin-top:12px">${esc(p.note)}</div>`:""}`;
+  return card;
+}
+
+/* ============================================================
+   ASK
+   ============================================================ */
+let askState={q:"",loading:false,res:null,err:null};
+function renderAsk(){
+  const v=$("#view-ask");
+  v.innerHTML=`
+    <div class="page-head" style="text-align:center;max-width:680px;margin:8px auto 24px">
+      <div class="page-eyebrow" style="text-align:center">Ask Orbital · natural language</div>
+      <h1 class="page-title" style="font-size:27px">Ask anything about a counterparty</h1>
+      <p class="page-sub" style="margin:0 auto">Plain English in. A decision out — plus the typed TaxiQL query Orbital generated and ran against live sources.</p>
+    </div>
+    <div class="ask-wrap">
+      <div class="ask-box">
+        <textarea id="askInput" rows="2" placeholder="e.g. Is Tesco in trouble? · Who controls Promoat? · Is Barclays sanctioned?">${esc(askState.q)}</textarea>
+        <button class="btn btn-primary ask-go" id="askGo">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>Ask
+        </button>
+      </div>
+      <div class="chips" id="askChips">
+        ${["is Tesco in trouble?","who controls Promoat?","is Barclays sanctioned?","is Deaf Elevation Ltd a risk?"].map(q=>`<button class="chip" data-q="${esc(q)}"><span class="q">?</span>${esc(q)}</button>`).join("")}
+      </div>
+      <div class="answer" id="askAnswer"></div>
+    </div>`;
+  const ta=$("#askInput");
+  ta.focus(); ta.setSelectionRange(ta.value.length,ta.value.length);
+  ta.addEventListener("keydown",e=>{ if(e.key==="Enter"&&!e.shiftKey){e.preventDefault(); doAsk(ta.value);} });
+  $("#askGo").addEventListener("click",()=>doAsk(ta.value));
+  $("#askChips").addEventListener("click",e=>{const c=e.target.closest(".chip"); if(!c)return; ta.value=c.dataset.q; doAsk(c.dataset.q);});
+  if(askState.res) paintAnswer(askState.res);
+  else if(askState.err) paintAskErr(askState.err);
+}
+function highlightTaxiQL(code){
+  let h=esc(code);
+  h=h.replace(/\b(given|find|as|in)\b/g,'<span class="kw">$1</span>');
+  h=h.replace(/(&quot;[^&]*?&quot;)/g,'<span class="st">$1</span>');
+  h=h.replace(/\b([a-z][\w]*\.[\w.]+)\b/g,'<span class="ty">$1</span>');
+  h=h.replace(/([{}])/g,'<span class="pn">$1</span>');
+  return h;
+}
+async function doAsk(q){
+  q=String(q||"").trim(); if(!q) return;
+  askState={q,loading:true,res:null,err:null};
+  const ans=$("#askAnswer");
+  ans.innerHTML=`<div class="ans-card"><div class="ans-body" style="display:flex;align-items:center;gap:13px;color:var(--ink-3)">
+    <span class="asm-spin"></span><div><div style="font-weight:600;color:var(--ink);letter-spacing:-0.01em">Routing your question…</div>
+    <div style="font-size:12.5px;font-family:var(--mono)">Classifying intent · generating TaxiQL · querying live sources</div></div></div></div>`;
+  try{
+    const r=await getJSON(API.ask(q),{timeout:120000});
+    askState.loading=false; askState.res=r;
+    paintAnswer(r);
+  }catch(err){
+    askState.loading=false; askState.err=err.message;
+    paintAskErr(err.message);
+  }
+}
+function paintAnswer(r){
+  const ans=$("#askAnswer"); if(!ans)return;
+  const summary=r.summary||"No answer returned.";
+  const tql=r.taxiql||"";
+  ans.innerHTML=`
+    <div class="ans-card">
+      <div class="ans-q">
+        <span class="lbl">Question</span>
+        <span class="qt">${esc(r.question||"")}</span>
+        ${r.intent?`<span class="pill NEU intent"><span class="dot"></span>${esc(r.intent)}</span>`:""}
+      </div>
+      <div class="ans-body">
+        <div class="ans-sum">${esc(summary)}</div>
+        ${tql?`
+        <div class="taxiql-block">
+          <div class="tql-top"><span class="lbl">Generated TaxiQL — ran live</span><span class="dots"><i></i><i></i><i></i></span></div>
+          <pre class="tql-code">${highlightTaxiQL(tql)}</pre>
+        </div>
+        <div class="ask-foot"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>English → typed query → live sources. Nobody wrote an integration for this question.</div>`:""}
+      </div>
+    </div>`;
+}
+function paintAskErr(msg){
+  const ans=$("#askAnswer"); if(!ans)return;
+  ans.innerHTML=`<div class="err-banner"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4M12 17h.01"/><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg><div><b>Couldn't answer that.</b> <span style="font-family:var(--mono)">${esc(msg)}</span></div></div>`;
+}
+
+/* ============================================================
+   MONITORING
+   ============================================================ */
+function renderMonitoring(){
+  const v=$("#view-monitoring");
+  const watch=getWatch();
+  v.innerHTML=`
+    <div class="page-head">
+      <div class="page-eyebrow">Continuous monitoring</div>
+      <h1 class="page-title">Monitoring &amp; alerts</h1>
+      <p class="page-sub">Orbital re-screens every counterparty on demand. When a risk band moves, you get an alert delta — so a counterparty going RED never slips past you.</p>
+    </div>
+    <div class="mon-banner"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+      <div><b>${watch.length} counterparties under watch.</b> <span>Re-check pulls a fresh assessment and compares it to the last-seen band.</span></div>
+    </div>
+    ${watch.length===0?emptyState("Nothing monitored yet","Add counterparties from Portfolio or the search bar to begin continuous monitoring."):'<div class="mon-grid" id="mon-grid"></div>'}`;
+  if(watch.length===0) return;
+  const grid=$("#mon-grid");
+  const bands=load(LS_BANDS,{});
+  watch.forEach(name=>{
+    const card=el("div","mon-card"); card.dataset.k=key(name);
+    const lastBand=bands[key(name)]||null;
+    card.innerHTML=monCardInner(name,null,lastBand,false);
+    grid.appendChild(card);
+    // hydrate from cache or fetch
+    const fill=(m)=>{ card.innerHTML=monCardInner(name,m,lastBand,false); wireMonCard(card,name); };
+    if(CACHE.has(key(name))) fill(vm(CACHE.get(key(name))));
+    else getBrain(name).then(d=>fill(vm(d))).catch(()=>{ card.innerHTML=monCardInner(name,{error:true},lastBand,false); wireMonCard(card,name); });
+  });
+}
+function monCardInner(name,m,lastBand,checking){
+  const titleRow=`<div class="mon-top"><div class="mon-name"><span class="co-ava" style="width:24px;height:24px;border-radius:6px;font-size:9.5px;${avaStyle(name)}">${esc(initials(name))}</span>${esc(titleCase(name))}</div>
+    <button class="btn recheck" data-recheck="${esc(name)}" ${checking?"disabled":""}>${checking?'<span class="spin-sm"></span> Checking…':'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px"><path d="M21 2v6h-6M3 12a9 9 0 0 1 15-6.7L21 8M3 22v-6h6M21 12a9 9 0 0 1-15 6.7L3 16"/></svg> Re-check'}</button></div>`;
+  if(m && m.error){
+    return titleRow+`<div class="mon-mid"><span style="color:var(--red);font-family:var(--mono);font-size:12px">⚠ assessment unavailable</span></div>
+      <div class="mon-bot"><span class="mon-last">${lastBand?("last band "+lastBand):"never checked"}</span></div>`;
+  }
+  if(!m){
+    return titleRow+`<div class="mon-mid"><span class="sk" style="width:60px;height:22px"></span><span class="sk" style="width:80px"></span></div><div class="mon-bot"><span class="sk" style="width:90px"></span></div>`;
+  }
+  const bc=bandColor(m.band);
+  const score=m.score==null?"—":m.score;
+  return titleRow+`
+    <div class="mon-mid">
+      <div class="mon-score"><span class="lbl">Risk score</span><span class="v" style="color:${bc}">${score}<span style="font-size:12px;color:var(--ink-4)">/100</span></span></div>
+      <div class="mon-score"><span class="lbl">Current band</span><span class="pill ${bandClass(m.band)}" style="margin-top:3px"><span class="dot"></span>${esc(m.band||"N/A")}</span></div>
+      <div class="mon-score" style="margin-left:auto;text-align:right"><span class="lbl">Top exposure</span><span style="font-size:12px;color:var(--ink-2);max-width:150px;display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(m.topFlag?m.topFlag.label:"None")}</span></div>
+    </div>
+    <div class="mon-bot"><span class="mon-last">Checked ${esc(relTime(Date.now()))}</span>
+      <a href="#" data-open="${esc(name)}" style="font-family:var(--mono);font-size:11.5px;font-weight:600">Open dossier →</a></div>
+    <div data-delta></div>`;
+}
+function wireMonCard(card,name){
+  card.querySelector("[data-recheck]")?.addEventListener("click",()=>recheck(name,card));
+  card.querySelector("[data-open]")?.addEventListener("click",e=>{e.preventDefault(); openAssess(name);});
+}
+async function recheck(name,card){
+  const bands=load(LS_BANDS,{});
+  const prev=bands[key(name)]||null;
+  card.innerHTML=monCardInner(name, CACHE.has(key(name))?vm(CACHE.get(key(name))):null, prev, true);
+  try{
+    const data=await getBrain(name,{fresh:true});
+    const m=vm(data);
+    card.innerHTML=monCardInner(name,m,prev,false);
+    wireMonCard(card,name);
+    // delta
+    const slot=card.querySelector("[data-delta]");
+    const order={GREEN:0,AMBER:1,RED:2};
+    let d;
+    if(!prev){ d=`<div class="delta same"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 8v4l3 2"/></svg>Baseline set · band <b style="margin:0 3px">${m.band}</b></div>`; }
+    else if(prev===m.band){ d=`<div class="delta same"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"/></svg>No change · still <b style="margin:0 3px">${m.band}</b></div>`; }
+    else if((order[m.band]??1)>(order[prev]??1)){ d=`<div class="delta up"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 19V5M5 12l7-7 7 7"/></svg>Risk increased — moved <b style="margin:0 3px">${prev} → ${m.band}</b></div>`; toast(`${titleCase(name)} moved to ${m.band}`,"err"); }
+    else { d=`<div class="delta down"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12l7 7 7-7"/></svg>Risk eased — moved <b style="margin:0 3px">${prev} → ${m.band}</b></div>`; toast(`${titleCase(name)} improved to ${m.band}`); }
+    if(slot){ slot.outerHTML=d; }
+    bands[key(name)]=m.band; save(LS_BANDS,bands);
+  }catch(err){
+    card.innerHTML=monCardInner(name,{error:true},prev,false);
+    wireMonCard(card,name);
+    toast("Re-check failed: "+err.message,"err");
+  }
+}
+
+/* ============================================================
+   GLOBAL search + export + boot
+   ============================================================ */
+$("#globalSearch").addEventListener("keydown",e=>{
+  if(e.key==="Enter"){
+    const val=e.target.value.trim();
+    if(!val) return;
+    e.target.value="";
+    addToWatch(val);
+    openAssess(val);
+  }
+});
+// keyboard "/" focuses search
+document.addEventListener("keydown",e=>{
+  if(e.key==="/" && document.activeElement.tagName!=="INPUT" && document.activeElement.tagName!=="TEXTAREA"){
+    e.preventDefault(); $("#globalSearch").focus();
+  }
+});
+$("#exportBtn").addEventListener("click",()=>{
+  if(state.view!=="assess" || !state.current){
+    // export the first watched company's dossier
+    const first=getWatch()[0];
+    if(first){ toast("Opening "+titleCase(first)+" for export…"); openAssess(first); setTimeout(()=>window.print(),650); }
+    else toast("Add a counterparty first to export a report","err");
+    return;
+  }
+  window.print();
+});
+
+/* ---- hook doAsk: log the generated TaxiQL of every natural-language ask ---- */
+const _origDoAsk = doAsk;
+doAsk = async function(q){
+  const query = String(q||"").trim();
+  await _origDoAsk(q);
+  if(!query) return;                    // empty submits are ignored by the original
+  if(askState.err){
+    Console.logAsk(query, { error: askState.err });
+  } else if(askState.res){
+    const r = askState.res;
+    Console.logAsk(r.question||query, { taxiql:r.taxiql, intent:r.intent });
+  }
+};
+
+Console.wire();
+updateCounts();
+setView("portfolio");
+</script>
+</body>
+</html>
