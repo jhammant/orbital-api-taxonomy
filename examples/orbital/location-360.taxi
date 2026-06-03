@@ -1,0 +1,16 @@
+// LOCATION 360 — the fan-out "brain", proved with ZERO auth.
+//
+// From one postcode, Orbital fans out across THREE independent APIs in parallel:
+//   Postcodes.io  -> coordinates + administrative geography
+//   Police.uk     -> street crime near that point   (needs lat/lng)
+//   Environment Agency -> flood stations near that point (needs lat/lng)
+//
+// Orbital invents the Postcodes.io hop once and reuses its coordinates for both
+// downstream calls. No integration between these APIs is declared anywhere.
+// (Swap the postcode for a company once the Companies House key is wired — see company-360.taxi.)
+given { pc : uk.gov.Postcode = "EC2R 8AH" }
+find {
+  geography : uk.gov.apis.postcodes_io.PostcodeLookup
+  crimesNearHq : uk.gov.apis.police_uk.StreetCrime[]
+  floodStationsNearHq : uk.gov.apis.environment_agency_flood.FloodStation[]
+}

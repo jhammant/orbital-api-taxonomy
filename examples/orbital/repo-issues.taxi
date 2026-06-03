@@ -1,0 +1,5 @@
+// CODING vertical — given an owner/repo, Orbital fetches that repo's live open issues
+// (GitHub). Complements repo-brief.taxi (repo facts) with the actual open work items.
+// The /issues endpoint also returns PRs; those carry a "pull_request" node upstream.
+given { owner : brain.RepoOwner = "orbitalapi", repo : brain.RepoName = "orbital" }
+find { coding.GithubIssue[] }

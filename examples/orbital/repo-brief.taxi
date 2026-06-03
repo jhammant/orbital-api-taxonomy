@@ -1,0 +1,5 @@
+// CODING vertical — given an owner/repo, Orbital fetches live repository facts (GitHub).
+// Same router, the dev domain. Authenticated reads (private/your-org repos) plug in
+// by adding a bearer token to Orbital's auth config.
+given { owner : brain.RepoOwner = "orbitalapi", repo : brain.RepoName = "orbital" }
+find { coding.GithubRepo }

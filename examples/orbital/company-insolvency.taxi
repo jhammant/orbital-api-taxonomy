@@ -1,0 +1,16 @@
+// INSOLVENCY vertical — given a company number, Orbital routes it into the real UK
+// distress corpus (Gazette insolvency notices + Companies House + PSC ownership +
+// G-Cloud / DOS government awards) and returns a distress profile: in-distress flag,
+// severity, plain-English stage, the latest insolvency event + date, a serial-failure
+// controller note, and any live government contracts that could re-compete.
+//
+// Backed by demo/services/insolvency_service.py on :8901 (read-only over the corpus).
+// The join key is uk.gov.CompanyRegistrationNumber, so this composes with the rest of
+// the brain: type a company NAME, GLEIF/Companies House emit the number, and Orbital
+// plans straight through to this distress lens — no integration declared anywhere.
+//
+//   07021926 = AASEYA SOFTWARE SERVICES (UK) LIMITED (winding-up petition, distressed)
+//   08810995 = CAVENDISH WOOD LIMITED               (liquidator appointed, severity 5)
+//   09446231 = MONZO BANK LIMITED                   (healthy control — inDistress:false)
+given { id : uk.gov.CompanyRegistrationNumber = "07021926" }
+find { brain.insolvency.InsolvencyProfile }

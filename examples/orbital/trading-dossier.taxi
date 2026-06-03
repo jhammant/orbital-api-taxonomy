@@ -1,0 +1,5 @@
+// TRADING vertical — given a ticker, Orbital fetches a live quote (Yahoo).
+// The trading brain joins the company brain via the ticker -> company-name spine:
+// the same router, a different domain. (Research/decision-support only — not advice.)
+given { ticker : brain.StockTicker = "AAPL" }
+find { markets.StockQuote }

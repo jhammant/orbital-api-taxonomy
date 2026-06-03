@@ -1,0 +1,14 @@
+// THE COMPANY BRAIN — one company number -> a full 360 assembled across 4 live APIs.
+//
+//   Companies House (identity + postcode)
+//        -> Postcodes.io (postcode -> coordinates + geography)
+//             -> Police.uk        (street crime near the registered office)
+//             -> Environment Agency (flood stations near the registered office)
+//
+// Orbital plans the entire graph from one id — no integration is declared anywhere.
+// Requires the free Companies House API key configured in Orbital (Phase 2); until
+// then, see crime-near-postcode.taxi for the no-auth keystone proof.
+//
+// 09446231 = Monzo Bank Ltd.
+given { id : uk.gov.CompanyRegistrationNumber = "09446231" }
+find { uk.gov.demo.Company360 }

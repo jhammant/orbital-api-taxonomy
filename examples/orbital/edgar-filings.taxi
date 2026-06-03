@@ -1,0 +1,12 @@
+// COMPLIANCE / disclosure vertical — given a company's zero-padded SEC CIK,
+// Orbital fetches its legal name, SIC industry and MOST-RECENT filing (SEC EDGAR).
+// Same router, a new public-disclosure domain (joins the company brain by legal name).
+//
+// Example: Apple Inc. — CIK 0000320193.
+// NOTE: EDGAR keys on the CIK, not the ticker. There is no by-ticker endpoint;
+// resolving AAPL -> 0000320193 needs a full scan of company_tickers.json (see
+// the ticker -> CIK caveat in build/gov-uk/taxi/edgar.taxi).
+// CAVEAT: SEC requires a descriptive User-Agent header on every request
+// ("company-brain demo jhammant@gmail.com") or it returns HTTP 403.
+given { cik : markets.edgar.SecCik = "0000320193" }
+find { markets.edgar.EdgarSubmissions }

@@ -1,0 +1,34 @@
+// PERSONAL vertical — "brief me for my next meeting."
+//
+// Orbital pulls your next meeting from a privacy-safe local MOCK (no real Gmail/
+// Calendar access) and hands back the brief + attendees (name / email / company).
+// Because each attendee's `company` is a uk.gov.CompanyName, the brain backgrounds
+// the firms straight from the meeting (query 3) — no integration declared
+// anywhere; they compose because they share semantic types.
+//
+// The mock op takes a CalendarSelector ("next") so Orbital plans a clean targeted
+// lookup. Flip personal.taxi's baseUrl to a read-only Google MCP shim to go live.
+
+// 1) The brief — title, start time, location.
+given { sel : brain.CalendarSelector = "next" }
+find { brain.MeetingBrief }
+
+// 2) The attendees — name / email / company (a bound collection).
+// given { sel : brain.CalendarSelector = "next" }
+// find { brain.MeetingAttendee[] }
+
+// 3) THE PAYOFF — brief me, the attendees, AND background an attendee's employer
+//    with the SAME router. Feed a `company` (a uk.gov.CompanyName) to the company
+//    spine: Orbital discovers GLEIF (LEI + Companies House number + registered
+//    postcode + status) from the name alone — zero wiring between calendar and
+//    the gov-uk APIs. Verified live (Monzo Bank -> LEI 213800PLUYXGZ8LU7T61,
+//    company 730427, EC2A 2AG). Add WikidataEntity / weather / crime to taste.
+// given {
+//   sel  : brain.CalendarSelector = "next"
+//   name : uk.gov.CompanyName = "Monzo Bank"
+// }
+// find {
+//   meeting   : brain.MeetingBrief
+//   attendees : brain.MeetingAttendee[]
+//   employer  : uk.gov.apis.gleif.LeiRecord
+// }

@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"/>
+<title>Orbital — The Universal Data Router</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Hanken+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#07080a; --bg2:#0c0e12; --surface:#0f1217; --surface2:#13171e;
+  --border:#1c222b; --border2:#2a323d; --text:#e9edf2; --muted:#9aa4b1; --faint:#5c6571;
+  --lime:#c6f73a; --lime-soft:rgba(198,247,58,.14); --lime-line:rgba(198,247,58,.5);
+  --cyan:#56d6e6; --rose:#ff6b81; --violet:#a78bfa; --amber:#ffb454;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+html,body{background:#000;font-family:'Hanken Grotesk',sans-serif;color:var(--text)}
+@page{size:1280px 800px;margin:0}
+.slide{position:relative;width:1280px;height:800px;overflow:hidden;page-break-after:always;
+  background:
+    radial-gradient(900px 620px at 10% -10%, rgba(198,247,58,.10), transparent 58%),
+    radial-gradient(760px 680px at 102% 4%, rgba(86,214,230,.07), transparent 52%),
+    radial-gradient(680px 600px at 50% 118%, rgba(167,139,250,.06), transparent 60%),
+    var(--bg);
+  padding:64px 72px;display:flex;flex-direction:column}
+.slide::after{content:none}
+.grid-bg{position:absolute;inset:0;opacity:.45;
+  background-image:linear-gradient(var(--border) 1px,transparent 1px),linear-gradient(90deg,var(--border) 1px,transparent 1px);
+  background-size:40px 40px;mask:radial-gradient(130% 100% at 50% 40%,#000,transparent 82%)}
+.mono{font-family:'IBM Plex Mono',monospace}
+.kick{font-family:'IBM Plex Mono',monospace;font-size:13px;letter-spacing:.22em;text-transform:uppercase;color:var(--lime);margin-bottom:18px;position:relative;z-index:2}
+h2{font-family:'Syne',sans-serif;font-weight:800;font-size:52px;line-height:1.0;letter-spacing:-.02em;position:relative;z-index:2}
+h2 .g{background:linear-gradient(92deg,#fff,var(--lime) 70%,#9be1ff);-webkit-background-clip:text;background-clip:text;color:transparent}
+.sub{color:var(--muted);font-size:19px;line-height:1.5;max-width:880px;margin-top:16px;position:relative;z-index:2}
+.sub b{color:var(--text)}
+.foot{position:absolute;left:72px;right:72px;bottom:30px;display:flex;justify-content:space-between;
+  font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--faint);z-index:2}
+.brand{display:flex;align-items:center;gap:11px;font-family:'IBM Plex Mono',monospace;font-size:13px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted)}
+.brand .mk{width:20px;height:20px;border-radius:6px;background:conic-gradient(from 210deg,var(--lime),#7bd0ff,var(--violet),var(--lime));box-shadow:0 0 16px rgba(198,247,58,.45)}
+.brand b{color:var(--text);font-weight:600}
+.z{position:relative;z-index:2}
+/* cover */
+.cover{justify-content:center}
+.cover h1{font-family:'Syne';font-weight:800;font-size:104px;line-height:.92;letter-spacing:-.03em;margin:8px 0 6px}
+.cover h1 .g{background:linear-gradient(92deg,#fff 8%,var(--lime) 58%,#9be1ff);-webkit-background-clip:text;background-clip:text;color:transparent}
+.cover .tag{font-size:26px;color:var(--text);margin-top:14px}
+.cover .tag b{color:var(--lime)}
+.cover .meta{margin-top:40px;font-family:'IBM Plex Mono';font-size:13.5px;color:var(--muted);line-height:1.9}
+.cover .meta .l{color:var(--faint)}
+.pill{display:inline-block;font-family:'IBM Plex Mono';font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--lime);border:1px solid var(--lime-line);background:var(--lime-soft);border-radius:999px;padding:6px 14px}
+/* generic content */
+.row{display:flex;gap:22px;position:relative;z-index:2}
+.col{flex:1}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:22px}
+.card h3{font-family:'IBM Plex Mono';font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--faint);margin-bottom:8px;display:flex;justify-content:space-between}
+.card h3 .s{color:var(--lime)}
+.card .big{font-family:'Syne';font-weight:800;font-size:34px;letter-spacing:-.01em}
+.card p{color:var(--muted);font-size:15px;line-height:1.5;margin-top:6px}
+.kv{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--border);font-size:14.5px}
+.kv:last-child{border:0}.kv .k{color:var(--faint);font-family:'IBM Plex Mono';font-size:11px;letter-spacing:.04em;text-transform:uppercase}
+.kv .v{font-weight:600;font-variant-numeric:tabular-nums}
+.tag2{display:inline-block;font-family:'IBM Plex Mono';font-size:11.5px;color:var(--lime);background:var(--lime-soft);border-radius:6px;padding:3px 9px;margin:4px 5px 0 0}
+ul.feat{list-style:none;margin-top:14px;position:relative;z-index:2}
+ul.feat li{display:flex;gap:12px;padding:9px 0;font-size:16px;color:var(--text);border-bottom:1px solid var(--border)}
+ul.feat li b{color:var(--lime);font-family:'IBM Plex Mono';font-size:13px;min-width:20px}
+ul.feat li span{color:var(--muted)}
+.lead{font-size:21px;line-height:1.5;color:var(--text);max-width:980px;position:relative;z-index:2}
+.lead .hl{color:var(--lime);font-weight:600}
+/* router diagram */
+.stage{position:relative;flex:1;margin-top:10px}
+.node{position:absolute;transform:translateY(-50%);background:var(--surface);border:1px solid var(--border2);border-radius:11px;padding:10px 13px;min-width:172px;z-index:3}
+.node.live{border-color:var(--lime-line)}
+.node .l{font-family:'IBM Plex Mono';font-size:9.5px;letter-spacing:.13em;text-transform:uppercase;color:var(--faint)}
+.node .n{font-weight:600;font-size:15px;margin-top:2px;display:flex;align-items:center;gap:7px}
+.node .n .pip{width:8px;height:8px;border-radius:50%;background:var(--lime);box-shadow:0 0 9px var(--lime)}
+.node .v{font-family:'IBM Plex Mono';font-size:11.5px;color:var(--muted);margin-top:5px}
+.node.core{background:radial-gradient(120% 120% at 50% 0%,rgba(198,247,58,.13),var(--surface));text-align:center;min-width:auto;padding:16px 20px;box-shadow:0 0 0 1px var(--lime-line),0 0 44px -8px rgba(198,247,58,.5)}
+.node.core .t{font-family:'Syne';font-weight:800;font-size:19px}
+.node.core .s{font-family:'IBM Plex Mono';font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:var(--lime);margin-top:3px}
+.node.input{background:var(--surface2)}
+.node .badge{position:absolute;top:-9px;right:-8px;font-family:'IBM Plex Mono';font-size:8.5px;letter-spacing:.1em;text-transform:uppercase;color:#0a0c08;background:var(--cyan);padding:2px 7px;border-radius:999px;font-weight:600}
+.edges{position:absolute;inset:0;width:100%;height:100%;z-index:1}
+.edges path{fill:none;stroke:var(--lime-line);stroke-width:1.5;stroke-dasharray:5 7}
+.edges path.b{stroke:var(--cyan)}
+/* compare table */
+table.cmp{width:100%;border-collapse:collapse;position:relative;z-index:2;margin-top:6px}
+table.cmp th,table.cmp td{text-align:left;padding:13px 16px;border-bottom:1px solid var(--border);font-size:15px;vertical-align:top}
+table.cmp th{font-family:'IBM Plex Mono';font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--faint)}
+table.cmp td.cat{font-weight:600;color:var(--text);width:230px}
+table.cmp td.them{color:var(--muted);width:430px}
+table.cmp td.us{color:var(--lime)}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:14px;position:relative;z-index:2}
+.moat{background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--lime);border-radius:12px;padding:20px}
+.moat h4{font-family:'Syne';font-size:21px;font-weight:800;margin-bottom:6px}
+.moat p{color:var(--muted);font-size:15px;line-height:1.5}
+.persona{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px}
+.persona .h{font-family:'IBM Plex Mono';font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--lime);margin-bottom:6px}
+.persona .t{font-weight:600;font-size:16px;margin-bottom:4px}
+.persona p{color:var(--muted);font-size:13.5px;line-height:1.45}
+.cluster{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px 18px}
+.cluster .ct{font-family:'IBM Plex Mono';font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--faint);margin-bottom:8px}
+.cluster .ci{font-size:14px;color:var(--text);padding:4px 0}
+</style></head>
+<body>
+
+<!-- 1 COVER -->
+<section class="slide cover">
+  <div class="grid-bg"></div>
+  <div class="z"><span class="pill">Live demonstration · June 2026</span></div>
+  <h1 class="z">The <span class="g">Universal</span><br>Data Router</h1>
+  <div class="tag z">Ask anything. <b>Orbital routes the data.</b></div>
+  <div class="sub z" style="margin-top:22px">A working demonstration of Orbital as a company, personal, markets &amp; code
+    "brain" — assembling live answers across many independent APIs it was never told how to connect.</div>
+  <div class="meta z">
+    <span class="l">Prepared for</span> &nbsp;Marty — Orbital &nbsp;·&nbsp; Sebastian Gray — Big Ideas Group<br>
+    <span class="l">Built on</span> &nbsp;github.com/jhammant/orbital-api-taxonomy &nbsp;·&nbsp; orbitalhq.com
+  </div>
+  <div class="foot"><div class="brand"><span class="mk"></span> ORBITAL <b>· Brain</b></div><div>01 / 09</div></div>
+</section>
+
+<!-- 2 PROBLEM -->
+<section class="slide">
+  <div class="grid-bg"></div>
+  <div class="kick">The problem</div>
+  <h2 class="z">Every cross-system question<br>is an <span class="g">integration project.</span></h2>
+  <div class="sub z">"Give me a full profile of this company — who they are, where they are, the risk &amp; context
+    around them." In most companies that's a two-quarter project: five teams, five API contracts, brittle glue,
+    a new pipeline, and a data model nobody agrees on. Add a sixth source — start over.</div>
+  <div class="row" style="margin-top:36px">
+    <div class="col card"><h3>Old way · iPaaS / ETL</h3>
+      <div class="big" style="color:var(--rose)">O(N²)</div>
+      <p>A human pre-wires every A→B connection. N sources → N² brittle connectors to build and maintain.
+      Data is copied on a schedule and goes stale. New source = new pipeline.</p></div>
+    <div class="col card"><h3>The tax</h3>
+      <div class="big">“We can’t<br>answer that.”</div>
+      <p>Integration sprawl makes the platform team the bottleneck every other team complains about — and
+      every new question waits in their backlog.</p></div>
+    <div class="col card" style="border-color:var(--lime-line)"><h3 style="color:var(--lime)">Orbital · semantic router</h3>
+      <div class="big"><span class="g" style="background:linear-gradient(92deg,#fff,var(--lime));-webkit-background-clip:text;background-clip:text;color:transparent">O(N)</span></div>
+      <p>Describe each source once by the <b style="color:var(--text)">meaning</b> of its data. Orbital derives the
+      call graph at query time. The Nth source is instantly reachable from every existing query.</p></div>
+  </div>
+  <div class="foot"><div class="brand"><span class="mk"></span> ORBITAL <b>· Brain</b></div><div>02 / 09</div></div>
+</section>
+
+<!-- 3 THESIS -->
+<section class="slide">
+  <div class="grid-bg"></div>
+  <div class="kick">The thesis</div>
+  <h2 class="z">Route data by <span class="g">meaning</span>,<br>not by plumbing.</h2>
+  <div class="row" style="margin-top:30px">
+    <div class="col">
+      <ul class="feat">
+        <li><b>01</b><div><b style="font-family:inherit;color:var(--text)">Shared semantic types.</b> <span>Describe each API's inputs &amp; outputs with a common vocabulary — Postcode, Latitude, CompanyName, Ticker.</span></div></li>
+        <li><b>02</b><div><b style="font-family:inherit;color:var(--text)">Describe, don't integrate.</b> <span>A few lines of Taxi per source. No point-to-point code between any two services — ever.</span></div></li>
+        <li><b>03</b><div><b style="font-family:inherit;color:var(--text)">Query-time composition.</b> <span>Orbital matches one operation's output type to another's input and plans the multi-API call graph itself.</span></div></li>
+        <li><b>04</b><div><b style="font-family:inherit;color:var(--text)">Lineage as proof.</b> <span>Every assembled answer ships with a deterministic, auditable graph of exactly how it was built.</span></div></li>
+      </ul>
+    </div>
+    <div class="col" style="flex:0 0 430px">
+      <div class="card" style="height:100%;display:flex;flex-direction:column;justify-content:center;text-align:center;background:radial-gradient(130% 120% at 50% 0%,rgba(198,247,58,.10),var(--surface))">
+        <div class="mono" style="font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--faint)">The whole idea</div>
+        <div style="font-family:'Syne';font-weight:800;font-size:40px;line-height:1.05;margin:14px 0">One engine.<br>One spine.<br><span style="color:var(--lime)">Every domain.</span></div>
+        <p style="color:var(--muted);font-size:15px">A company links to its ticker, its filings, its people, its repos —
+        all the same entity, answerable as one.</p>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div class="brand"><span class="mk"></span> ORBITAL <b>· Brain</b></div><div>03 / 09</div></div>
+</section>
+
+<!-- 4 LIVE PROOF -->
+<section class="slide">
+  <div class="grid-bg"></div>
+  <div class="kick">Live proof · captured from the running stack</div>
+  <h2 class="z" style="font-size:44px">Type a company name. <span class="g">5 live APIs, 5 seconds, 0 integrations.</span></h2>
+  <div class="stage">
+    <svg class="edges" viewBox="0 0 1140 470" preserveAspectRatio="none">
+      <path d="M225 235 C 300 235, 320 235, 360 235"/>
+      <path d="M520 235 C 640 235, 660 70, 770 70"/>
+      <path d="M520 235 C 640 235, 660 150, 770 150"/>
+      <path d="M520 235 C 640 235, 660 235, 770 235"/>
+      <path class="b" d="M905 250 C 980 250, 700 320, 770 320"/>
+      <path class="b" d="M905 250 C 980 250, 700 410, 770 410"/>
+      <path d="M520 235 C 620 235, 640 320, 770 320"/>
+      <path d="M520 235 C 620 235, 640 410, 770 410"/>
+    </svg>
+    <div class="node input" style="left:0;top:50%"><div class="l">You provide</div><div class="n" style="font-size:16px">TESCO PLC</div></div>
+    <div class="node core" style="left:330px;top:50%"><div class="t">ORBITAL</div><div class="s">router</div></div>
+    <div class="node live" style="left:770px;top:70px"><div class="l">HTTP GET · gleif.org</div><div class="n"><span class="pip"></span>GLEIF</div><div class="v">CH 00445790 · LEI ··JZ46</div></div>
+    <div class="node live" style="left:770px;top:150px"><div class="l">HTTP GET · wikidata.org</div><div class="n"><span class="pip"></span>Wikidata</div><div class="v">“British multinational retailer”</div></div>
+    <div class="node live" style="left:770px;top:235px"><span class="badge">keystone</span><div class="l">HTTP GET · postcodes.io</div><div class="n"><span class="pip"></span>Postcodes.io</div><div class="v">AL7 1GA → coordinates</div></div>
+    <div class="node live" style="left:770px;top:320px"><div class="l">HTTP GET · data.police.uk</div><div class="n"><span class="pip"></span>Police.uk</div><div class="v">242 crimes near HQ</div></div>
+    <div class="node live" style="left:770px;top:410px"><div class="l">HTTP GET · open-meteo.com</div><div class="n"><span class="pip"></span>Open-Meteo</div><div class="v">15.3°C at the office</div></div>
+  </div>
+  <div class="mono z" style="font-size:13.5px;color:var(--muted);margin-top:6px">
+    assembled in <b style="color:var(--lime)">5.0s</b> · <b style="color:var(--lime)">5</b> live services routed ·
+    <b style="color:var(--lime)">0</b> integrations written · Orbital was never told these APIs connect — it deduced the path from shared types.</div>
+  <div class="foot"><div class="brand"><span class="mk"></span> ORBITAL <b>· Brain</b></div><div>04 / 09</div></div>
+</section>
+
+<!-- 5 KEYSTONE / NETWORK EFFECT -->
+<section class="slide">
+  <div class="grid-bg"></div>
+  <div class="kick">Why it compounds</div>
+  <h2 class="z">One tiny adapter <span class="g">fused two whole clusters.</span></h2>
+  <div class="sub z">The model had an <b>identity cluster</b> (company registries, emitting a postcode) and a
+    <b>geo cluster</b> (crime, flood, weather, transit — all keyed on coordinates) that never touched. One ~30-line
+    adapter — Postcodes.io, turning a postcode into coordinates — became the single edge that connected them.</div>
+  <div class="row" style="margin-top:34px;align-items:center">
+    <div class="cluster col"><div class="ct">Identity cluster</div>
+      <div class="ci">· Companies House</div><div class="ci">· GLEIF (LEI)</div><div class="ci">· Wikidata</div>
+      <div class="ci mono" style="color:var(--lime);margin-top:8px">emits → Postcode</div></div>
+    <div class="col" style="flex:0 0 260px;text-align:center">
+      <div class="node core" style="position:static;display:inline-block;transform:none"><div class="t" style="color:var(--cyan)">Postcodes.io</div><div class="s">the keystone</div></div>
+      <div class="mono" style="font-size:12px;color:var(--muted);margin-top:12px">Postcode&nbsp;→&nbsp;Latitude / Longitude</div>
+    </div>
+    <div class="cluster col"><div class="ct">Geo cluster</div>
+      <div class="ci">· Police.uk (crime)</div><div class="ci">· Environment Agency (flood)</div><div class="ci">· Open-Meteo (weather)</div>
+      <div class="ci mono" style="color:var(--lime);margin-top:8px">needs ← Latitude / Longitude</div></div>
+  </div>
+  <div class="lead z" style="margin-top:36px;font-size:22px">The Nth source you describe becomes reachable from queries
+    involving all N−1 prior ones — and makes them richer — at <span class="hl">linear cost</span>. That compounding
+    vocabulary is a network effect a pile of point-to-point integrations can never become.</div>
+  <div class="foot"><div class="brand"><span class="mk"></span> ORBITAL <b>· Brain</b></div><div>05 / 09</div></div>
+</section>
+
+<!-- 6 EVERY DOMAIN -->
+<section class="slide">
+  <div class="grid-bg"></div>
+  <div class="kick">Same brain, every domain</div>
+  <h2 class="z">One router. <span class="g">A market in every direction.</span></h2>
+  <div class="row" style="margin-top:28px">
+    <div class="col card"><h3>Company / KYB <span class="s">live</span></h3>
+      <div class="big" style="font-size:26px">TESCO PLC</div>
+      <p>Identity · background · crime · flood · weather across 5 APIs from a name. Lineage = a native audit trail.</p>
+      <div style="margin-top:8px"><span class="tag2">GLEIF</span><span class="tag2">Companies House</span><span class="tag2">+3</span></div></div>
+    <div class="col card"><h3>Markets <span class="s">live</span></h3>
+      <div class="big" style="font-size:26px">AAPL · 306.31</div>
+      <p>Ticker → live quote, filings &amp; news. Resolves to the same legal entity as the company brain via the ticker→LEI spine.</p>
+      <div style="margin-top:8px"><span class="tag2">Yahoo</span><span class="tag2">SEC EDGAR</span><span class="tag2">paper trades</span></div></div>
+    <div class="col card"><h3>Coding <span class="s">live</span></h3>
+      <div class="big" style="font-size:26px">356★ · react 245k★</div>
+      <p>Repo → issues, PRs, CI &amp; past decisions → a typed brief. The dev domain, same engine.</p>
+      <div style="margin-top:8px"><span class="tag2">GitHub</span><span class="tag2">claude-history</span></div></div>
+    <div class="col card"><h3>Personal <span class="s">next</span></h3>
+      <div class="big" style="font-size:26px">Brief my 3pm</div>
+      <p>Calendar → attendees → their companies → news → a meeting brief. Local-first, your data never leaves.</p>
+      <div style="margin-top:8px"><span class="tag2">Calendar</span><span class="tag2">Gmail</span><span class="tag2">Drive</span></div></div>
+  </div>
+  <div class="lead z" style="margin-top:30px">Each vertical reuses the same spine and instantly composes with the others —
+    <span class="hl">company ⨝ markets ⨝ code ⨝ personal</span>. The TAM expands every time a new source is described, not rebuilt.</div>
+  <div class="foot"><div class="brand"><span class="mk"></span> ORBITAL <b>· Brain</b></div><div>06 / 09</div></div>
+</section>
+
+<!-- 7 GTM / MOATS -->
+<section class="slide">
+  <div class="grid-bg"></div>
+  <div class="kick">Positioning &amp; moats</div>
+  <h2 class="z" style="font-size:46px">Not an iPaaS. <span class="g">A semantic router.</span></h2>
+  <table class="cmp">
+    <tr><th>Category</th><th>What they do</th><th>Why Orbital is different</th></tr>
+    <tr><td class="cat">iPaaS · Zapier / Mulesoft</td><td class="them">A human pre-builds every A→B flow.</td><td class="us">Derives the path at query time from shared types — nothing is pre-wired.</td></tr>
+    <tr><td class="cat">ETL / warehouse</td><td class="them">Copies data on a schedule; answers go stale.</td><td class="us">Calls sources live, on demand. No copy, no staleness, no central store to govern.</td></tr>
+    <tr><td class="cat">LLM “agent calls tools”</td><td class="them">A model guesses tools; opaque, non-deterministic.</td><td class="us">Deterministic, type-checked plan — with a receipt for every hop.</td></tr>
+  </table>
+  <div class="two" style="margin-top:24px">
+    <div class="moat"><h4>Moat 1 — Compounding taxonomy</h4><p>Whoever curates the canonical vocabulary for a vertical owns the
+      substrate every future integration snaps into. Open schemas accelerate it; the routing engine stays the product.</p></div>
+    <div class="moat" style="border-left-color:var(--cyan)"><h4>Moat 2 — Lineage as proof</h4><p>The only approach that emits
+      deterministic, per-answer provenance. The "wow" of the demo, the technical buyer's trust, and the compliance buyer's deliverable — one feature.</p></div>
+  </div>
+  <div class="row" style="margin-top:18px">
+    <div class="col persona"><div class="h">Lead · Compliance / KYB</div><div class="t">Lineage = the audit trail</div><p>Customer/supplier 360 with native provenance regulators ask for.</p></div>
+    <div class="col persona"><div class="h">Champion · Data platform</div><div class="t">O(N²) → O(N)</div><p>Connector backlog collapses to type descriptions; they curate, not glue.</p></div>
+    <div class="col persona"><div class="h">Volume · RevOps</div><div class="t">Live account enrichment</div><p>Firmographics + territory + signals as a one-line query, always fresh.</p></div>
+  </div>
+  <div class="foot"><div class="brand"><span class="mk"></span> ORBITAL <b>· Brain</b></div><div>07 / 09</div></div>
+</section>
+
+<!-- 8 WHAT WE BUILT + ASK -->
+<section class="slide">
+  <div class="grid-bg"></div>
+  <div class="kick">Proof of velocity</div>
+  <h2 class="z">Built live, in one working session.</h2>
+  <div class="row" style="margin-top:26px">
+    <div class="col">
+      <ul class="feat">
+        <li><b>✓</b><div><b style="font-family:inherit;color:var(--text)">The keystone bridge.</b> <span>Postcodes.io adapter that fuses the identity &amp; geo clusters — verified live.</span></div></li>
+        <li><b>✓</b><div><b style="font-family:inherit;color:var(--text)">No-auth "type a company name."</b> <span>GLEIF resolves name → LEI → registry number → postcode, no keys.</span></div></li>
+        <li><b>✓</b><div><b style="font-family:inherit;color:var(--text)">6 new live adapters.</b> <span>GLEIF · Wikidata · Open-Meteo · Yahoo · GitHub · GDELT — on top of 9 UK-gov APIs.</span></div></li>
+        <li><b>✓</b><div><b style="font-family:inherit;color:var(--text)">A polished demo app.</b> <span>"The Company Brain" — live routing animation, dossier, trading &amp; coding tabs.</span></div></li>
+        <li><b>✓</b><div><b style="font-family:inherit;color:var(--text)">Visible lineage.</b> <span>Orbital's own Profiler graph shows the multi-API route, captured live.</span></div></li>
+      </ul>
+    </div>
+    <div class="col" style="flex:0 0 470px">
+      <div class="card" style="border-color:var(--lime-line)">
+        <h3 style="color:var(--lime)">What investment accelerates</h3>
+        <div class="kv"><span class="k">Public sandbox</span><span class="v">“type any company”, hosted</span></div>
+        <div class="kv"><span class="k">New verticals</span><span class="v">Finance · Health (FHIR)</span></div>
+        <div class="kv"><span class="k">Brain-smarts</span><span class="v">ask-in-English · watch &amp; alert</span></div>
+        <div class="kv"><span class="k">Enterprise</span><span class="v">governance · PII policies</span></div>
+        <div class="kv"><span class="k">Network effect</span><span class="v">the Data Router Challenge</span></div>
+        <p style="margin-top:14px;color:var(--text);font-size:15px">The wedge: developer-loved open semantic schemas; the routing engine
+          is the product; the taxonomy is the moat that compounds with every contribution.</p>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div class="brand"><span class="mk"></span> ORBITAL <b>· Brain</b></div><div>08 / 09</div></div>
+</section>
+
+<!-- 9 CLOSE -->
+<section class="slide cover">
+  <div class="grid-bg"></div>
+  <h1 class="z" style="font-size:88px">Ask anything.<br><span class="g">It routes the data.</span></h1>
+  <div class="sub z" style="font-size:21px;margin-top:24px">The integration era was about connecting apps you tell it to connect.
+    Orbital connects apps it <b>figures out</b> how to connect — by meaning — and proves the path. Every source you teach the
+    brain makes every question smarter, at linear cost, with a receipt.</div>
+  <div class="meta z mono" style="margin-top:40px;font-size:14px;color:var(--muted);line-height:2">
+    <span style="color:var(--faint)">Live demo</span> &nbsp;localhost:8848 · the Company Brain<br>
+    <span style="color:var(--faint)">Engine</span> &nbsp;orbitalhq.com &nbsp;·&nbsp; <span style="color:var(--faint)">Schemas</span> &nbsp;github.com/jhammant/orbital-api-taxonomy</div>
+  <div class="foot"><div class="brand"><span class="mk"></span> ORBITAL <b>· Brain</b></div><div>09 / 09</div></div>
+</section>
+
+</body></html>

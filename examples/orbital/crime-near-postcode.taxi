@@ -1,0 +1,14 @@
+// KEYSTONE BRIDGE (new) — the company-brain router proved with ZERO auth.
+//
+// Given only a UK postcode, Orbital:
+//   1. calls Postcodes.io to resolve the postcode -> Latitude / Longitude
+//   2. feeds those coordinates into Police.uk to fetch street crime
+//
+// Orbital is never told Postcodes.io and Police.uk are connected. It discovers the
+// path because both bind the same uk.gov.Latitude / uk.gov.Longitude types. This one
+// new adapter (Postcodes.io) is the single edge that fuses the ORG cluster (Companies
+// House emits a Postcode) to the GEO cluster (Police / Flood / TfL).
+//
+// EC2R 8AH = Monzo Bank's registered office.
+given { pc : uk.gov.Postcode = "EC2R 8AH" }
+find { uk.gov.apis.police_uk.StreetCrime[] }

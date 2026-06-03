@@ -9,6 +9,7 @@ if [ ! -d "$BUILD_DIR" ]; then
   exit 1
 fi
 mkdir -p "$DEST"
-find "$DEST" -type f -name '*.taxi' -delete
+# ADDITIVE sync: copy/overwrite only OUR taxi files; never wipe the dir — a second session
+# contributes its own typed sources (deeptech/energy/realestate) to this same workspace.
 cp "$BUILD_DIR"/*.taxi "$DEST"/
 echo "Synced $(find "$DEST" -type f -name '*.taxi' | wc -l) Taxi files to $DEST"

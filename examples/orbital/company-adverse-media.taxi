@@ -1,0 +1,5 @@
+// ADVERSE-MEDIA / SOCIAL — one company name -> recent news + social mentions,
+// across Google News, Hacker News, Reddit and Bluesky. The reputational signal layer
+// for KYB and portfolio monitoring; composes onto the same company spine as everything else.
+given { name : uk.gov.CompanyName = "TESCO PLC" }
+find { social.AdverseMediaList }

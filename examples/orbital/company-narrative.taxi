@@ -1,0 +1,11 @@
+// LLM-AS-A-TYPED-SOURCE — route a company name INTO a local LLM, get TYPED prose back.
+//
+//   name -> LM Studio (local, OpenAI-compatible) -> brain.RiskNarrative { summary }
+//
+// To Orbital the LLM is just another HTTP source that happens to emit a
+// brain.NarrativeText. So the generated narrative drops straight into a dossier
+// alongside the real civic facts — Orbital discovers the path from the name alone.
+// If LM Studio is offline the source returns a deterministic template (still 200),
+// so the demo never breaks.
+given { name : uk.gov.CompanyName = "TESCO PLC" }
+find { narrative : brain.RiskNarrative }

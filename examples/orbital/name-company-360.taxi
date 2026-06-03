@@ -1,0 +1,19 @@
+// TYPE A COMPANY NAME -> a live 360 dossier, with ZERO auth.
+//
+//   name -> GLEIF (LEI + Companies House number + registered postcode + status)
+//        -> Postcodes.io (postcode -> coordinates)
+//             -> Police.uk        (crime near the registered office)
+//             -> Environment Agency (flood stations near the registered office)
+//             -> Open-Meteo        (current weather at the registered office)
+//
+// Orbital discovers the entire path from the company name alone. No integration
+// between GLEIF, Postcodes.io, Police, the Environment Agency or Open-Meteo is
+// declared anywhere — they compose because they share semantic types.
+given { name : uk.gov.CompanyName = "TESCO PLC" }
+find {
+  identity : uk.gov.apis.gleif.LeiRecord
+  background : uk.gov.apis.wikidata.WikidataEntity
+  weatherAtHq : uk.gov.apis.open_meteo.CurrentWeather
+  crimesNearHq : uk.gov.apis.police_uk.StreetCrime[]
+  floodStationsNearHq : uk.gov.apis.environment_agency_flood.FloodStation[]
+}

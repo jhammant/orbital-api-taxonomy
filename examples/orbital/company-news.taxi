@@ -1,0 +1,4 @@
+// NEWS / backgrounding — given a company name, recent headlines (GDELT).
+// Best-effort (GDELT is rate-limited); kept separate so it can't break the main dossier.
+given { name : uk.gov.CompanyName = "Tesco" }
+find { news.NewsItem[] }

@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"/>
+<title>The Company Brain — Technical Briefing</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{--navy:#1f3a5e;--blue:#2f6fb0;--ink:#1c2430;--muted:#69727f;--faint:#9aa2ad;--rule:#d9dee4;
+ --mono-bg:#eef1f4;--call-bg:#eaf2fb;--call-br:#3b7dd8;--th:#f4f6f8;--red:#c0392b;--green:#2e7d4f;--amber:#b9770a;}
+*{box-sizing:border-box;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+@page{size:A4;margin:20mm 18mm 18mm 18mm;
+ @bottom-left{content:"The Company Brain — Technical Briefing";font-family:'IBM Plex Mono',monospace;font-size:8pt;color:#9aa2ad;}
+ @bottom-right{content:counter(page) " / " counter(pages);font-family:'IBM Plex Mono',monospace;font-size:8pt;color:#9aa2ad;}}
+html,body{margin:0;background:#fff;color:var(--ink);font-family:'IBM Plex Sans',system-ui,sans-serif;font-size:10.5pt;line-height:1.5}
+p{margin:0 0 11px}b,strong{font-weight:600}
+.mono{font-family:'IBM Plex Mono',monospace}
+code{font-family:'IBM Plex Mono',monospace;font-size:.85em;background:var(--mono-bg);padding:1px 5px;border-radius:3px;color:#243}
+h1,h2,h3,h4{color:var(--navy);font-weight:700;line-height:1.18}
+h2{font-size:17pt;margin:0 0 12px;padding-bottom:7px;border-bottom:1.5px solid var(--rule)}
+h3{color:var(--blue);font-size:12pt;margin:18px 0 6px}
+h4{font-size:10.5pt;margin:14px 0 4px}
+.sec{break-before:page}
+.lede{color:#33414f;font-size:11.3pt;line-height:1.55}
+ul,ol{margin:0 0 12px;padding-left:20px}li{margin:0 0 6px}
+.muted{color:var(--muted)}.red{color:var(--red)}.green{color:var(--green)}.amber{color:var(--amber)}
+.cover{height:247mm;display:flex;flex-direction:column;justify-content:center;break-after:page}
+.badge{display:inline-block;align-self:flex-start;background:var(--navy);color:#fff;font-weight:600;font-size:9pt;letter-spacing:.12em;padding:5px 12px;border-radius:5px;margin-bottom:18px}
+.cover h1{font-size:40pt;letter-spacing:-.01em;margin:0 0 6px;line-height:1.02}
+.cover .tagline{font-size:15pt;color:#33414f;font-weight:500;margin-bottom:22px}
+.cover .lede{max-width:155mm}
+.cover .meta{margin-top:26px;color:var(--muted);font-size:10pt;line-height:1.7}.cover .meta .mono{color:#33414f}
+.cover .prov{margin-top:26px;color:var(--faint);font-size:9pt;line-height:1.5;max-width:155mm}
+table{width:100%;border-collapse:collapse;margin:6px 0 14px;font-size:9.6pt;break-inside:avoid}
+th{background:var(--th);text-align:left;font-weight:600;color:var(--navy);padding:7px 9px;border-bottom:1px solid var(--rule)}
+td{padding:7px 9px;border-bottom:1px solid var(--rule);vertical-align:top;line-height:1.4}
+td.k{font-weight:600}tr{break-inside:avoid}
+.call{background:var(--call-bg);border-left:3px solid var(--call-br);padding:11px 14px;margin:13px 0;border-radius:0 5px 5px 0;break-inside:avoid}
+.call.warn{background:#fdf3ef;border-left-color:var(--red)}.call.good{background:#eef7f0;border-left-color:var(--green)}
+.call b{color:var(--navy)}
+pre{background:var(--mono-bg);border:1px solid var(--rule);border-radius:5px;padding:11px 13px;margin:6px 0 12px;font-family:'IBM Plex Mono',monospace;font-size:8.7pt;line-height:1.5;white-space:pre-wrap;break-inside:avoid}
+pre .c{color:#7a8694}pre .k{color:var(--blue)}pre .s{color:#1d7a4d}pre .hl{color:var(--red);font-weight:500}
+.view{border:1px solid var(--rule);border-radius:7px;margin:8px 0 14px;break-inside:avoid;overflow:hidden}
+.view .vh{background:#f7f9fb;border-bottom:1px solid var(--rule);padding:6px 11px;font-family:'IBM Plex Mono',monospace;font-size:8.3pt;color:var(--navy);display:flex;justify-content:space-between}
+.view .vh .src{color:var(--green)}
+.view pre{margin:0;border:0;border-radius:0;background:#fff;font-size:8.4pt}
+.fig{break-inside:avoid;margin:14px 0}.fig img{width:100%;border:1px solid var(--rule);border-radius:6px}
+.cap{font-style:italic;color:var(--muted);font-size:8.7pt;text-align:center;margin-top:7px;line-height:1.45}
+.flow{display:flex;align-items:stretch;border:1px solid var(--rule);border-radius:8px;padding:14px;background:#fbfcfd;break-inside:avoid}
+.flow .inp,.flow .core{display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;padding:0 10px}
+.flow .l{font-family:'IBM Plex Mono',monospace;font-size:7pt;letter-spacing:.1em;color:var(--faint);text-transform:uppercase}
+.flow .inp .v{font-weight:700;font-size:10.5pt;color:var(--navy);margin-top:3px}
+.flow .core .v{font-weight:700;font-size:11pt;color:#fff;background:var(--navy);border-radius:6px;padding:7px 11px;margin-top:3px}
+.flow .arrow{display:flex;align-items:center;color:var(--blue);font-size:15pt;padding:0 5px}
+.flow .nodes{flex:1;display:flex;flex-direction:column;gap:5px}
+.nd{display:flex;justify-content:space-between;align-items:center;border:1px solid var(--rule);border-radius:6px;padding:5px 9px;background:#fff;font-size:8.8pt}
+.nd.key{border-color:var(--call-br);background:var(--call-bg)}.nd.add{border-style:dashed;border-color:var(--amber);background:#fffaf0}
+.nd .nm{font-weight:600;color:var(--navy)}.nd .nm small{font-family:'IBM Plex Mono',monospace;font-weight:400;color:var(--faint);font-size:7pt;display:block}
+.nd .vl{font-family:'IBM Plex Mono',monospace;font-size:8pt;color:#33414f;text-align:right}
+.step{font-weight:600;color:var(--blue)}.lead-rule{border-top:1px solid var(--rule);margin:16px 0}
+</style></head>
+<body>
+
+<section class="cover">
+  <span class="badge">TECHNICAL BRIEFING · LIVE DEMONSTRATION</span>
+  <h1>The Company Brain</h1>
+  <div class="tagline">Orbital as a universal semantic <b>data router</b></div>
+  <p class="lede">An engineering write-up of a working demonstration: <b>how it works</b>, <b>what was built</b>
+  (fourteen live data sources behind one query), a <b>step-by-step trace</b>, a <b>live view of every tool</b>,
+  the join into a <b>21.4-million-record UK distress corpus</b>, a tailored read on <b>Big Ideas Group's own
+  portfolio</b>, and an honest <b>gap analysis</b>.</p>
+  <div class="meta">
+    Prepared for &nbsp;Marty — Orbital &nbsp;·&nbsp; Sebastian Gray — Big Ideas Group<br>
+    Subject &nbsp;<span class="mono">orbital-company-brain</span> &nbsp;·&nbsp; Engine &nbsp;<span class="mono">Orbital (orbitalhq.com)</span> &nbsp;·&nbsp; working live demo · 2026
+  </div>
+  <p class="prov">Every result, latency and screenshot in this document was captured live from the running
+  Orbital stack during one build session — not mocked. Where something is designed-but-incomplete it is marked
+  <span class="amber">[gap]</span> and explained in §7.</p>
+</section>
+
+<section>
+  <h2>Executive summary</h2>
+  <p>The concept is a <b>semantic data router</b>. Rather than a human pre-building a connection between every
+  pair of systems, each source is described once — by the <i>meaning</i> of the data it exchanges — and the engine
+  (<a href="https://orbitalhq.com" style="color:var(--blue)">Orbital</a>) works out which sources to call, in what
+  order, to answer a request. You ask for a result by what it <i>is</i>; the router finds the path, runs it, and
+  emits the lineage of how it was built.</p>
+  <p>This briefing is deliberately honest about proven-vs-designed:</p>
+  <ul>
+    <li><b>It works, live, across fourteen sources.</b> From one company name the brain assembles identity,
+      background, geography, crime, flood, weather, <b>real insolvency &amp; ownership-risk</b>, <b>adverse media</b>
+      and an LLM-written narrative — composing services that were never told they connect. Measured warm latencies
+      run <b>0.01–0.97 s</b> per capability (§4, Fig. 1).</li>
+    <li><b>The mechanism is a network effect, not plumbing.</b> Sources compose through shared semantic types. One
+      ~30-line adapter (Postcodes.io) fused two clusters; adding the Nth source is O(N), not O(N²) (Fig. 3).</li>
+    <li><b>The differentiated value is distress intelligence.</b> Because the brain derives a company's Companies
+      House number (via GLEIF, no key), it joins straight into the author's <b>gcloud-intel</b> corpus — 21.4M
+      records of Gazette insolvency + Companies House + PSC ownership + government contracts — to add real
+      insolvency stage, <b>phoenix-director risk</b> and live <b>contracts-at-risk</b> (§5).</li>
+    <li><b>We ran it on Big Ideas Group's own world.</b> The brain mapped BIG's ownership chain, screened its
+      portfolio and its founder for serial-failure risk (clean), and surfaced a textbook phoenix case — a company
+      that <i>passes</i> a status check whose director controls 145 other distressed companies (§6).</li>
+  </ul>
+  <div class="call"><b>One-line thesis.</b> Every source you teach the brain makes every question smarter — at
+  linear cost — and every answer comes with a receipt. A pile of point-to-point integrations can never become that.</div>
+</section>
+
+<section>
+  <h2>A note on terms (plain English)</h2>
+  <table>
+    <tr><th style="width:27%">Term</th><th>What it actually means</th></tr>
+    <tr><td class="k">Semantic type</td><td>A named <i>meaning</i> for a value — not <code>string</code> but <code>CompanyName</code>, <code>Postcode</code>. Two APIs that bind the same type can be joined automatically.</td></tr>
+    <tr><td class="k">Taxi / Orbital</td><td>Taxi is the open language that describes each API in semantic types; Orbital is the engine that plans and runs the multi-API call graph. Taxi is open; the engine is the product.</td></tr>
+    <tr><td class="k">TaxiQL</td><td>The query: <code>given { a } find { B }</code> — "I have an A, get me a B." You never name the APIs.</td></tr>
+    <tr><td class="k">Adapter</td><td>One small Taxi file describing a single source: a response model with <code>jsonPath</code> bindings + an HTTP operation.</td></tr>
+    <tr><td class="k">Lineage</td><td>The auditable graph Orbital emits for every answer — which fact entered, which services ran, in what order.</td></tr>
+    <tr><td class="k">Identity spine</td><td>The shared key (<code>CompanyRegistrationNumber</code>) that lets one company be recognised across every source.</td></tr>
+    <tr><td class="k">GLEIF / PSC</td><td>GLEIF: the free global registry — name → LEI + Companies House number, no key. PSC: "Persons with Significant Control" — who owns/controls each UK company.</td></tr>
+  </table>
+</section>
+
+<section class="sec">
+  <h2>1. How it works</h2>
+  <p>Four ideas. <b>(1) Shared semantic types</b> — each API's fields are bound to <i>meanings</i>; Police, TfL and
+  Open-Meteo all bind the same <code>Latitude</code>/<code>Longitude</code> without knowing about each other.
+  <b>(2) Describe, don't integrate</b> — an adapter is a few lines; there is no point-to-point code between any two
+  APIs. <b>(3) Query-time composition</b> — Orbital matches the output type of one operation to the input of another
+  and builds the plan; from a name alone it <i>derives</i> name → GLEIF → postcode → coordinates → crime.
+  <b>(4) Lineage as proof</b> — every answer carries an auditable graph of how it was built.</p>
+  <div class="fig"><img src="figures/fig-cost.png" alt="integration cost"/>
+    <div class="cap">Figure 3. Point-to-point integration cost grows as O(N²); semantic descriptions grow as O(N).
+    At ~16 sources the brain would already be ~120 hand-built connectors under the old model.</div></div>
+  <div class="call"><b>Why it compounds.</b> The Nth source becomes reachable from queries involving all N−1 prior
+  ones, and enriches them, at O(N) description cost. That inversion is the moat.</div>
+</section>
+
+<section class="sec">
+  <h2>2. What we built</h2>
+  <p>On a base of 9 callable UK-gov APIs, this session added the keystone bridge and a set of enrichment, distress,
+  markets, code and personal adapters — <b>fourteen live sources</b> behind one query. Each adapter is a single
+  self-contained Taxi file; none required editing another.</p>
+  <table>
+    <tr><th>Adapter</th><th>From → to (semantic)</th><th>Auth</th><th>Role</th></tr>
+    <tr><td class="k">Postcodes.io <span class="amber">★</span></td><td><code>Postcode</code> → <code>Lat/Lng</code></td><td>none</td><td>Keystone — fuses identity ↔ geo</td></tr>
+    <tr><td class="k">GLEIF</td><td><code>CompanyName</code> → <code>LEI</code>, <code>CH number</code>, <code>Postcode</code></td><td>none</td><td>Name → identity; the spine key</td></tr>
+    <tr><td class="k">Insolvency (gcloud-intel)</td><td><code>CH number</code> → distress profile</td><td>none*</td><td>Distress · phoenix risk · contracts</td></tr>
+    <tr><td class="k">Adverse media / social</td><td><code>CompanyName</code> → news+social</td><td>none</td><td>Google News · HN · Reddit · Bluesky</td></tr>
+    <tr><td class="k">LLM narrative</td><td><code>CompanyName</code> → narrative</td><td>local</td><td>On-device LM Studio (qwen3)</td></tr>
+    <tr><td class="k">Wikidata · Open-Meteo</td><td>name → description · <code>Lat/Lng</code> → weather</td><td>none</td><td>Background · context at HQ</td></tr>
+    <tr><td class="k">Police.uk · EA Flood</td><td><code>Lat/Lng</code> → crime · flood</td><td>none</td><td>Location risk signals</td></tr>
+    <tr><td class="k">Yahoo · SEC EDGAR</td><td><code>Ticker</code> → quote · <code>CIK</code> → filings</td><td>none</td><td>Markets vertical</td></tr>
+    <tr><td class="k">GitHub repo + issues</td><td><code>owner/repo</code> → facts + issues/PRs</td><td>none</td><td>Coding vertical</td></tr>
+    <tr><td class="k">Personal meeting brief</td><td>calendar → attendees → companies</td><td>mock</td><td>Personal vertical (privacy-safe)</td></tr>
+  </table>
+  <p class="muted" style="font-size:9pt">* The insolvency adapter reads a local read-only service over the corpus; no
+  third-party auth. Personal uses a privacy-safe mock calendar (real Google MCP is a documented swap). On top sits
+  <b>"The Company Brain"</b> web app and a hardened, cached, rate-limited public-sandbox build.</p>
+</section>
+
+<section class="sec">
+  <h2>3. A query, step by step</h2>
+  <p>We ask for a company 360 by meaning; the request names no APIs:</p>
+  <pre><span class="k">given</span> { name : uk.gov.CompanyName = <span class="s">"TESCO PLC"</span> }
+<span class="k">find</span>  { identity, background, weatherAtHq, crimesNearHq, floodStationsNearHq }</pre>
+  <p><span class="step">1 — identity.</span> Only GLEIF turns a <code>CompanyName</code> into registry identity →
+  it is called; Wikidata runs in parallel for a description.
+  <span class="step">2 — the invented hop.</span> Crime and weather need <code>Lat/Lng</code>; nothing produced those,
+  but GLEIF emitted a <code>Postcode</code> and Postcodes.io converts it — Orbital inserts that call itself.
+  <span class="step">3 — fan out.</span> Police, the Environment Agency and Open-Meteo are called in parallel on the
+  shared coordinates. <span class="step">4 — assemble.</span> Five responses, projected into the requested shape.</p>
+  <div class="fig"><div class="flow">
+    <div class="inp"><div class="l">You provide</div><div class="v">TESCO PLC</div></div>
+    <div class="arrow">→</div><div class="core"><div class="l">routes via</div><div class="v">ORBITAL</div></div>
+    <div class="arrow">→</div>
+    <div class="nodes">
+      <div class="nd"><div class="nm">GLEIF<small>gleif.org</small></div><div class="vl">CH 00445790 · LEI ··JZ46</div></div>
+      <div class="nd"><div class="nm">Wikidata<small>wikidata.org</small></div><div class="vl">"British multinational retailer"</div></div>
+      <div class="nd key"><div class="nm">Postcodes.io ★<small>keystone</small></div><div class="vl">AL7 1GA → coordinates</div></div>
+      <div class="nd"><div class="nm">Police.uk<small>data.police.uk</small></div><div class="vl">242 crimes</div></div>
+      <div class="nd"><div class="nm">Open-Meteo<small>open-meteo.com</small></div><div class="vl">15.3 °C</div></div>
+      <div class="nd add"><div class="nm">Insolvency<small>gcloud-intel · via CH#</small></div><div class="vl">distress · controllers · contracts</div></div>
+    </div></div>
+    <div class="cap">Figure 1b. The plan Orbital derived from one company name. The dashed node (§5) joins on the
+    Companies House number GLEIF already produced — no new identity work.</div></div>
+  <p>Notice GLEIF produced <code>CH 00445790</code>. Any source keyed on a Companies House number is now reachable for
+  this company at zero extra resolution cost — the hook for §5.</p>
+</section>
+
+<section class="sec">
+  <h2>4. The tools — live views</h2>
+  <p>A view of each capability, captured live this session. Latencies (warm) are in Figure 1.</p>
+  <div class="fig"><img src="figures/fig-latency.png" alt="latency"/>
+    <div class="cap">Figure 1. Measured warm latency per capability. Cached insolvency lookups return in ~10 ms;
+    the local-LLM narrative is the slowest at ~1 s.</div></div>
+
+  <h3>4.1 Company 360</h3>
+  <div class="view"><div class="vh"><span>given CompanyName="TESCO PLC" → find { … }</span><span class="src">5 APIs · 0.86 s</span></div>
+  <pre>identity   : TESCO PLC · CH 00445790 · LEI 2138002P5RNKC5W2JZ46 · ACTIVE · AL7 1GA
+background : "British multinational retailer" (Wikidata Q487494)
+weatherAtHq: 15.3 °C   crimesNearHq: 242   floodStationsNearHq: 15</pre></div>
+
+  <h3>4.2 Insolvency &amp; phoenix-director risk &nbsp;<span class="muted" style="font-size:9pt">(the differentiated tool)</span></h3>
+  <div class="view"><div class="vh"><span>given CH#="07021926" → find { InsolvencyProfile }</span><span class="src">gcloud-intel · 0.01 s</span></div>
+  <pre>companyName : AASEYA SOFTWARE SERVICES (UK) LIMITED
+stage       : <span class="hl">Winding-up petition</span>      latestEvent: winding-up-petition (2025-02-07)
+controllerRisk   : controller Manoj Kumar Baheti runs no other distressed companies on record
+topContractBuyer : <span class="hl">Social Security Scotland</span>
+topContractTitle : Adobe Creative Cloud, Document Cloud and Software</pre></div>
+  <div class="view"><div class="vh"><span>given CH#="10976115" → find { InsolvencyProfile }</span><span class="src">the phoenix case</span></div>
+  <pre>companyName    : OFFICE TEK SOLUTIONS LTD
+stage          : No insolvency on record          <span class="c">← passes a status check</span>
+controllerRisk : <span class="hl">controller Mr Neville Taylor runs 145 other distressed companies</span></pre></div>
+  <p class="muted" style="font-size:9.3pt">The OFFICE TEK case is the point: the company itself is "Active" and clean —
+  but its controller is a serial-failure phoenix. No Companies-House status check surfaces that; the PSC-network join does.</p>
+
+  <h3>4.3 Adverse media / social</h3>
+  <div class="view"><div class="vh"><span>given CompanyName="TESCO PLC" → find { AdverseMediaList }</span><span class="src">news+social · 0.82 s</span></div>
+  <pre>news       · "Preliminary Results 2025/26 — Tesco PLC"
+news       · "Tesco faces slower first-quarter sales growth, says Citi" (Yahoo)
+news       · "Tesco and Sainsbury gain comfort from Asda's continuing struggle"
+hackernews · (matched stories)   reddit/bluesky · best-effort
+counts: { news: 5, hackernews: 4, reddit: 0, bluesky: 0 }</pre></div>
+
+  <h3>4.4 LLM narrative (on-device)</h3>
+  <div class="view"><div class="vh"><span>given CompanyName="TESCO PLC" → find { RiskNarrative }</span><span class="src">local LM Studio · 0.97 s</span></div>
+  <pre>"TESCO PLC, the UK's largest supermarket chain, faces mounting competitive and operational
+ risks from intensifying discount retailers like Aldi and Lidl, rising input costs, and
+ evolving consumer habits; its ongoing restructuring efforts … aim to restore profitability
+ but carry execution and reputational risks amid ongoing margin pressure."   (qwen3-coder-next)</pre></div>
+
+  <h3>4.5 Markets · Coding · EDGAR · Personal</h3>
+  <div class="view"><div class="vh"><span>four more verticals, same router</span><span class="src">live</span></div>
+  <pre><span class="c">markets </span> AAPL → 306.31 USD (NMS)   ·   TSCO.L → 432.7 GBp (LSE)            <span class="c">[Yahoo]</span>
+<span class="c">coding  </span> orbitalapi/orbital → 356★ · 13 issues · TypeScript
+          open issue #31 "Add username tracking to query events" — @martypitt   <span class="c">[GitHub]</span>
+<span class="c">filings </span> CIK 0000320193 → Apple Inc. · Electronic Computers · latest form 4, 2026-05-29  <span class="c">[SEC EDGAR]</span>
+<span class="c">personal</span> next meeting "Q3 partnership review — embedded payments" · Monzo / Revolut / Wise</pre></div>
+  <div class="call good"><b>The proof is the absence.</b> None of these models declare an API name or an ordering.
+  Every plan above is inferred from semantic types — which is exactly why a new source plugs in without touching
+  anything that already works.</div>
+</section>
+
+<section class="sec">
+  <h2>5. The gcloud-intel integration, explained</h2>
+  <p>The demo so far enriches <i>public</i> identifiers. The step-change is to route the same query into a deep,
+  proprietary corpus that already exists on disk: <b>gcloud-intel</b>, a working UK insolvency-and-procurement
+  pipeline that fuses four sources into a local store and a local LLM.</p>
+  <h3>5.1 The corpus</h3>
+  <div class="fig"><img src="figures/fig-corpus.png" alt="corpus"/>
+    <div class="cap">Figure 2. ≈21.4M records: Gazette insolvency notices, the full Companies House register, and 15.5M
+    PSC ownership records — plus the G-Cloud/DOS contract corpus (2,496 suppliers mapped to CH numbers, 93% deterministically).</div></div>
+  <h3>5.2 Why it joins instantly — the shared key</h3>
+  <p>The reason this is an integration and not a project is the identity spine: the brain's GLEIF hop already produces
+  a company's <b>Companies House number</b>, and gcloud-intel is keyed on the <b>Companies House number</b>. The join
+  is deterministic — no fuzzy name-matching. Mechanically it is one adapter (a read-only service over the corpus + a
+  ~15-line Taxi file) — built and verified live this session.</p>
+  <pre><span class="k">given</span> { id : uk.gov.CompanyRegistrationNumber }   <span class="c">// already produced by GLEIF</span>
+<span class="k">find</span>  { InsolvencyProfile }                       <span class="c">// stage · controller risk · contract at risk</span></pre>
+  <h3>5.3 What it adds (verified against the live corpus)</h3>
+  <ul>
+    <li><b>Insolvency stage.</b> <span class="mono">CAVENDISH WOOD LTD (08810995)</span> → liquidation / winding-up order;
+      <span class="mono">AASEYA (07021926)</span> → winding-up petition.</li>
+    <li><b>Live government contracts at risk.</b> AASEYA holds a live <b>Social Security Scotland</b> contract — surfaced
+      before internal teams notice; across the corpus, <b>~£30.6M of live gov-contract value</b> sits with suppliers in
+      active insolvency, and those contracts re-compete within months (a sourcing signal for an investor).</li>
+    <li><b>Phoenix-director risk (PSC network).</b> <b>29,953 individuals</b> currently control 2+ distressed UK
+      companies; the worst, <span class="mono">Neville Taylor</span>, sits on <b>146</b>. These names are in no other
+      distress feed (§4.2, OFFICE TEK).</li>
+  </ul>
+  <div class="call good"><b>Data sovereignty, for free.</b> gcloud-intel's inference runs on-device (LM Studio; no data
+  leaves the host). With Orbital's deterministic, type-checked routing and native lineage, the result is a
+  <b>local-first, fully-auditable KYB brain</b> — a strong posture for regulated buyers.</div>
+</section>
+
+<section class="sec">
+  <h2>6. For Big Ideas Group</h2>
+  <p><b>Big Ideas Group</b> (CH# 04151059, active since 2001, EC1M 6DX) is a London multi-family office; founder
+  <b>Sebastian Gray</b> is also a non-exec at <b>Napier</b> (financial-crime / AML screening). The brain is, for a backer,
+  a <b>diligence and portfolio-risk engine</b> — and the distress/ownership layer is squarely in Sebastian's world.
+  We pointed it at BIG's own world:</p>
+  <table>
+    <tr><th>Run on BIG's world</th><th>What the brain returned (live)</th></tr>
+    <tr><td class="k">BIG's ownership chain</td><td>BIG IDEAS GROUP LIMITED is 75–100% owned by <b>Big Digital Ventures Limited</b> — surfaced from PSC data.</td></tr>
+    <tr><td class="k">Portfolio: Mutual Vision</td><td>Mutual Vision Technologies (04088165) — <b>clean</b>; held via <b>Mv Tech Bidco Limited</b> + Conor Shiels (the PE deal structure, visible in ownership).</td></tr>
+    <tr><td class="k">Phoenix screen — Sebastian Gray</td><td><b>Clean</b> — absent from the 29,953-controller distress network. The reassuring answer a backer wants.</td></tr>
+    <tr><td class="k">Phoenix capability proof</td><td>Worst controller <b>Neville Taylor → 146 distressed companies</b>; a portfolio target's director would be screened against this before a cheque.</td></tr>
+  </table>
+  <h3>6.1 Four things BIG would use on Monday</h3>
+  <ul>
+    <li><b>Instant diligence</b> on any UK company — identity, ownership, distress, government contracts, adverse media — with lineage as the audit trail.</li>
+    <li><b>Phoenix-director screening</b> before backing or acquiring — the OFFICE TEK case (clean company, serial-failure director) is the pattern that off-the-shelf credit tools miss.</li>
+    <li><b>Distressed-supplier deal flow</b> — failing gov suppliers holding live contracts (£ at risk) that re-compete = a sourcing engine for acquisitions / re-compete plays.</li>
+    <li><b>Portfolio &amp; watchlist monitoring</b> — re-run the dossier nightly; alert on distress, ownership or adverse-media changes across the portfolio and its suppliers.</li>
+  </ul>
+  <div class="call"><b>Why this is also the best diligence on Orbital.</b> Handing BIG a tool that answers their next
+  deal question lets them <i>feel</i> the platform value — and watch a fourteenth source plug in without an integration
+  project. Several BIG portfolio companies (Mutual Vision; the Napier-adjacent fintechs) could themselves build on the
+  same engine — making Orbital infrastructure across the portfolio, not just one investment.</div>
+</section>
+
+<section class="sec">
+  <h2>7. Honest gap analysis</h2>
+  <p>What is weak, unproven, or would need work before production — in the spirit of a real technical review.</p>
+  <table>
+    <tr><th style="width:30%">Gap</th><th>Status &amp; what closes it</th></tr>
+    <tr><td class="k">Coverage — GLEIF needs an LEI</td><td>The no-auth name→number path only covers LEI-registered firms. <b>Closes with:</b> a free Companies House search key for the millions of smaller UK companies (adapter already drafted).</td></tr>
+    <tr><td class="k">Type coercion (found &amp; fixed live)</td><td>Orbital failed to emit the insolvency model when fields used <code>inherits Boolean</code>/<code>Int</code> bound to JSON true/2. <b>Fixed</b> by using <code>String</code>/<code>Decimal</code> (the proven primitives). A real, documented sharp edge.</td></tr>
+    <tr><td class="k">Insolvency perf &amp; transport</td><td>Controller-risk recomputes over 15.5M PSC rows (~10–20 s cold) so we <b>warm-cache</b> demo companies (→10 ms). <b>Production:</b> materialise the PSC distress view + index. The service is reached via <code>host.docker.internal</code>; native deploys swap to the host IP.</td></tr>
+    <tr><td class="k">Source reliability</td><td>Police.uk is occasionally slow/empty; X/Twitter &amp; LinkedIn are not free-scannable (paid social-listening needed); GDELT/Reddit are rate-limited. <b>Closes with:</b> caching, stubs, and a paid social provider where required.</td></tr>
+    <tr><td class="k">It is a demo, not a product</td><td>No multi-tenant auth, RBAC, PII governance, or SLAs yet. Orbital has the policy primitives; they are not wired here. The local LLM narrative is on-device but unevaluated for accuracy.</td></tr>
+  </table>
+  <div class="call warn"><b>The honest position.</b> The architecture and the cross-source composition are real and
+  measured. The data is real. What remains is hardening — coverage, performance, governance — not invention. That is
+  a far better place to be than the reverse.</div>
+</section>
+
+<section class="sec">
+  <h2>8. Where this goes next</h2>
+  <ul>
+    <li><b>Coverage:</b> Companies House search key (all UK firms) + the materialised PSC distress view for instant phoenix screening at any scale.</li>
+    <li><b>Watch &amp; alert:</b> re-run dossiers on a schedule; emit a signal when a counterparty's distress stage, ownership pattern, contract exposure or adverse-media changes.</li>
+    <li><b>Ask-in-English:</b> gcloud-intel's local "Insolvency Oracle" (NL→SQL, on-device, audit-logged) is exactly the brain's LLM-as-a-source surface — wire it as a first-class query mode.</li>
+    <li><b>Hosted sandbox:</b> the hardened, cached, rate-limited build ships as a "type any UK company" front door for Big Ideas Group.</li>
+    <li><b>Governance:</b> turn on Orbital's per-type access policies + PII masking; lineage already gives the audit trail.</li>
+  </ul>
+  <div class="lead-rule"></div>
+  <p class="muted" style="font-size:9pt">Prepared from the live <span class="mono">orbital-company-brain</span> demo and
+  the <span class="mono">gcloud-intel</span> corpus. Company, markets, coding, insolvency, adverse-media and narrative
+  results are real responses captured during the build session; corpus and ownership figures are from the live
+  gcloud-intel database. Orbital is the semantic data-integration engine behind the Taxi language (orbitalhq.com).</p>
+</section>
+
+</body></html>

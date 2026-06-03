@@ -11,3 +11,10 @@ orbital-dev/.env
 orbital-dev/config/
 orbital-dev/prometheus_data/
 orbital-dev/workspace/src/*.taxi
+
+# local secrets (API keys) — never commit
+.secrets.env
+*.secrets.env
+services/.secrets.env
+demo/services/.secrets.env
+demo/watch_state.json

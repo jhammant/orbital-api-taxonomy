@@ -1,0 +1,4 @@
+// Postcodes.io directly: a UK postcode -> coordinates + administrative geography.
+// This is the bridge adapter in isolation (the hop Orbital invents in the chains below).
+given { pc : uk.gov.Postcode = "EC2R 8AH" }
+find { uk.gov.apis.postcodes_io.PostcodeLookup }

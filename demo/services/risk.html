@@ -1,0 +1,135 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Counterparty Risk — Orbital Brain</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Hanken+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#07080a;--surface:#0f1217;--surface2:#13171e;--border:#1b2129;--border2:#262d37;
+ --text:#e8ecf1;--muted:#8a94a1;--faint:#5b6470;--lime:#c6f73a;
+ --red:#ff4d5e;--red-bg:rgba(255,77,94,.12);--amber:#ffb13d;--amber-bg:rgba(255,177,61,.12);--green:#46d27f;--green-bg:rgba(70,210,127,.12);--cyan:#56d6e6;}
+*{box-sizing:border-box;margin:0}
+body{background:radial-gradient(900px 600px at 12% -8%,rgba(198,247,58,.07),transparent 60%),var(--bg);color:var(--text);
+ font-family:'Hanken Grotesk',system-ui,sans-serif;-webkit-font-smoothing:antialiased;min-height:100vh}
+.wrap{max-width:1080px;margin:0 auto;padding:28px 26px 80px}
+.top{display:flex;align-items:center;justify-content:space-between;margin-bottom:34px}
+.brand{display:flex;align-items:center;gap:11px;font-family:'IBM Plex Mono',monospace;font-size:12.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted)}
+.brand .mk{width:18px;height:18px;border-radius:5px;background:conic-gradient(from 210deg,var(--lime),#7bd0ff,#a78bfa,var(--lime));box-shadow:0 0 16px rgba(198,247,58,.4)}
+.brand b{color:var(--text);font-weight:600}
+.status{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--faint)}
+.kicker{font-family:'IBM Plex Mono',monospace;font-size:12px;letter-spacing:.2em;text-transform:uppercase;color:var(--lime);margin-bottom:12px}
+h1{font-family:'Syne',sans-serif;font-weight:800;font-size:clamp(30px,5vw,52px);line-height:1;letter-spacing:-.02em;margin-bottom:10px}
+.lede{color:var(--muted);font-size:16px;max-width:620px;margin-bottom:26px;line-height:1.5}
+.search{display:flex;gap:10px;margin-bottom:12px}
+.field{flex:1;display:flex;align-items:center;gap:12px;background:var(--surface);border:1px solid var(--border2);border-radius:13px;padding:0 16px;transition:.2s}
+.field:focus-within{border-color:rgba(198,247,58,.5);box-shadow:0 0 0 4px rgba(198,247,58,.12)}
+.field input{flex:1;background:none;border:0;outline:none;color:var(--text);font-size:18px;padding:16px 0}
+.go{font-family:'IBM Plex Mono',monospace;font-weight:600;font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:#0a0c08;background:var(--lime);border:0;border-radius:13px;padding:0 26px;cursor:pointer;transition:.15s}
+.go:hover{filter:brightness(1.08)}.go:disabled{opacity:.5;cursor:wait}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:30px}
+.chip{font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--muted);background:var(--surface);border:1px solid var(--border);border-radius:999px;padding:6px 13px;cursor:pointer}
+.chip:hover{border-color:rgba(198,247,58,.5);color:var(--text)}
+#out{display:none}
+.verdict{border-radius:18px;padding:24px 26px;margin-bottom:18px;border:1px solid var(--border2);display:flex;gap:24px;align-items:center}
+.verdict.RED{background:var(--red-bg);border-color:rgba(255,77,94,.4)}
+.verdict.AMBER{background:var(--amber-bg);border-color:rgba(255,177,61,.4)}
+.verdict.GREEN{background:var(--green-bg);border-color:rgba(70,210,127,.4)}
+.dial{flex:0 0 132px;text-align:center}
+.band{font-family:'Syne';font-weight:800;font-size:30px;letter-spacing:.02em}
+.RED .band{color:var(--red)}.AMBER .band{color:var(--amber)}.GREEN .band{color:var(--green)}
+.score{font-family:'IBM Plex Mono',monospace;font-size:13px;color:var(--muted);margin-top:2px}
+.ring{width:120px;height:120px;margin:0 auto}
+.vbody .co{font-family:'Syne';font-weight:800;font-size:22px;letter-spacing:-.01em}
+.vbody .meta{font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:var(--muted);margin:3px 0 10px}
+.vbody .rec{font-size:16px;line-height:1.5}.vbody .rec b{color:var(--text)}
+.grid{display:grid;grid-template-columns:1.05fr .95fr;gap:16px}
+@media(max-width:780px){.grid{grid-template-columns:1fr}}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px}
+.card h3{font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--faint);margin-bottom:12px}
+.flag{display:flex;gap:11px;padding:11px 0;border-bottom:1px solid var(--border)}
+.flag:last-child{border:0}
+.flag .dot{flex:0 0 9px;width:9px;height:9px;border-radius:50%;margin-top:5px}
+.flag.high .dot{background:var(--red);box-shadow:0 0 9px var(--red)}.flag.med .dot{background:var(--amber)}.flag.low .dot{background:var(--faint)}
+.flag .l{font-weight:600;font-size:14.5px}.flag .d{color:var(--muted);font-size:13px;line-height:1.45;margin-top:2px}
+.netwrap{height:340px;position:relative;overflow:hidden;border-radius:10px;background:var(--surface2)}
+svg.net{width:100%;height:100%}
+svg.net line{stroke:var(--border2);stroke-width:1.3}
+svg.net .nlabel{font-family:'IBM Plex Mono',monospace;font-size:9px;fill:var(--muted)}
+.legend{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--faint);margin-top:8px;display:flex;gap:16px}
+.legend i{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:5px}
+.empty{color:var(--faint);font-size:13px}
+.loading{color:var(--muted);font-family:'IBM Plex Mono',monospace;font-size:13px;padding:30px 0}
+.foot{margin-top:36px;color:var(--faint);font-family:'IBM Plex Mono',monospace;font-size:11px;line-height:1.7;border-top:1px solid var(--border);padding-top:16px}
+</style></head>
+<body><div class="wrap">
+<div class="top"><div class="brand"><span class="mk"></span> ORBITAL <b>· Risk</b></div><div class="status">live · UK ownership &amp; distress corpus</div></div>
+<p class="kicker">Counterparty risk · know who's really behind it</p>
+<h1>Can you trust this company?</h1>
+<p class="lede">Type any UK company. We traverse its <b style="color:var(--text)">ownership network</b> — who controls it, what
+else they run, and how many of those have failed — and return a <b style="color:var(--text)">RED / AMBER / GREEN verdict</b>
+with the hidden risk a single lookup never shows.</p>
+<div class="search">
+ <label class="field"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#5b6470" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+ <input id="q" value="OFFICE TEK SOLUTIONS" placeholder="Company name or number…" autocomplete="off"/></label>
+ <button class="go" id="run">Screen ▸</button></div>
+<div class="chips" id="chips">
+ <span class="chip">OFFICE TEK SOLUTIONS</span><span class="chip">CAVENDISH WOOD</span><span class="chip">AASEYA SOFTWARE</span>
+ <span class="chip">MONZO BANK</span><span class="chip">04088165</span></div>
+<div id="status" class="loading" style="display:none"></div>
+<div id="out"></div>
+<div class="foot">Ownership &amp; distress drawn from a 21.4M-record UK corpus (Companies House + 15.5M PSC ownership + Gazette
+insolvency + government contracts). Every verdict is explainable — each flag traces to a record. Decision-support, not advice.</div>
+</div>
+<script>
+const $=s=>document.querySelector(s);
+const COL={RED:'#ff4d5e',AMBER:'#ffb13d',GREEN:'#46d27f',UNKNOWN:'#5b6470'};
+function ringSVG(score,band){const c=COL[band]||'#5b6470';const r=52,C=2*Math.PI*r,off=C*(1-Math.min(score,100)/100);
+ return `<svg class="ring" viewBox="0 0 120 120"><circle cx="60" cy="60" r="${r}" fill="none" stroke="#1b2129" stroke-width="9"/>
+ <circle cx="60" cy="60" r="${r}" fill="none" stroke="${c}" stroke-width="9" stroke-linecap="round"
+ stroke-dasharray="${C}" stroke-dashoffset="${off}" transform="rotate(-90 60 60)"/>
+ <text x="60" y="58" text-anchor="middle" font-family="Syne" font-weight="800" font-size="30" fill="${c}">${score}</text>
+ <text x="60" y="76" text-anchor="middle" font-family="IBM Plex Mono" font-size="9" fill="#8a94a1">/ 100</text></svg>`;}
+function netSVG(net){
+ const W=520,H=320; const nodes=net.nodes||[],edges=net.edges||[];
+ const subj=nodes.find(n=>n.subject), persons=nodes.filter(n=>n.type==='person'),
+   fails=nodes.filter(n=>n.type==='company'&&!n.subject);
+ const pos={}; if(subj)pos[subj.id]=[70,H/2];
+ persons.forEach((p,i)=>pos[p.id]=[250,40+ (persons.length>1?(H-80)*i/(persons.length-1):H/2-20)]);
+ fails.forEach((f,i)=>pos[f.id]=[430,30+(fails.length>1?(H-60)*i/(fails.length-1):H/2-15)]);
+ let s=`<svg class="net" viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid meet">`;
+ edges.forEach(e=>{const a=pos[e.from],b=pos[e.to];if(a&&b)s+=`<line x1="${a[0]}" y1="${a[1]}" x2="${b[0]}" y2="${b[1]}"/>`;});
+ nodes.forEach(n=>{const p=pos[n.id];if(!p)return;
+   let fill='#262d37',stroke='#3a4250',rr=7,lbl=(n.label||'').slice(0,22);
+   if(n.subject){fill=COL[document.body.dataset.band]||'#56d6e6';rr=12;}
+   else if(n.type==='person'){fill='#3a4250';stroke='#56d6e6';rr=9;}
+   else if(n.failed){fill='#ff4d5e';stroke='#ff4d5e';rr=7;}
+   s+=`<circle cx="${p[0]}" cy="${p[1]}" r="${rr}" fill="${fill}" stroke="${stroke}" stroke-width="1.5"/>`;
+   const anchor=p[0]<150?'start':p[0]>380?'end':'middle', dx=p[0]<150?14:p[0]>380?-14:0;
+   s+=`<text class="nlabel" x="${p[0]+dx}" y="${p[1]+(n.type==='person'?22:3)}" text-anchor="${anchor}">${lbl}</text>`;});
+ return s+'</svg>';}
+async function screen(q){
+ $('#run').disabled=true; $('#out').style.display='none'; const st=$('#status'); st.style.display='block'; st.textContent='traversing ownership network…';
+ let d; try{ d=await fetch('/risk?q='+encodeURIComponent(q)).then(r=>r.json()); }catch(e){ d={found:false,verdict:'Backend unreachable.'}; }
+ st.style.display='none';
+ if(!d.found){ $('#out').style.display='block'; $('#out').innerHTML=`<div class="card"><div class="empty">${d.verdict||'No match.'}</div></div>`; $('#run').disabled=false; return; }
+ document.body.dataset.band=d.band;
+ const flags=(d.flags||[]).map(f=>`<div class="flag ${f.sev}"><span class="dot"></span><div><div class="l">${f.label}</div><div class="d">${f.detail}</div></div></div>`).join('')||'<div class="empty">No flags.</div>';
+ const ctrls=(d.controllers||[]).slice(0,6).map(c=>`<div class="flag low"><span class="dot"></span><div><div class="l">${c.name}</div><div class="d">${(c.control||'').replace(/[\[\]"]/g,'').replace(/-/g,' ')||'controller'}</div></div></div>`).join('')||'<div class="empty">Controlled by corporate entities only.</div>';
+ $('#out').innerHTML=`
+  <div class="verdict ${d.band}">
+    <div class="dial">${ringSVG(d.score,d.band)}<div class="band">${d.band}</div></div>
+    <div class="vbody"><div class="co">${d.companyName}</div>
+      <div class="meta">CH ${d.companyNumber} · ${d.status||''} · inc ${d.incorporated||'—'} · ${d.postcode||''}</div>
+      <div class="rec">${d.verdict}</div></div></div>
+  <div class="grid">
+    <div class="card"><h3>Risk flags</h3>${flags}</div>
+    <div class="card"><h3>Ownership network</h3><div class="netwrap">${netSVG(d.network||{})}</div>
+      <div class="legend"><span><i style="background:${COL[d.band]}"></i>this company</span><span><i style="background:#3a4250;outline:1px solid #56d6e6"></i>controller</span><span><i style="background:#ff4d5e"></i>their failed company</span></div></div>
+  </div>
+  <div class="card" style="margin-top:16px"><h3>Who controls it</h3>${ctrls}</div>`;
+ $('#out').style.display='block'; $('#run').disabled=false;
+}
+$('#run').onclick=()=>screen($('#q').value.trim());
+$('#q').addEventListener('keydown',e=>{if(e.key==='Enter')screen($('#q').value.trim());});
+document.querySelectorAll('#chips .chip').forEach(c=>c.onclick=()=>{$('#q').value=c.textContent;screen(c.textContent);});
+screen('OFFICE TEK SOLUTIONS');
+</script></body></html>
