@@ -871,6 +871,10 @@ a.media-t:hover{color:var(--accent)}
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 2 7l10 5 10-5-10-5Z"/><path d="m2 17 10 5 10-5"/><path d="m2 12 10 5 10-5"/></svg>
         Analysis
       </button>
+      <button class="nav-btn" data-view="property">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9.5 12 3l9 6.5"/><path d="M5 10v10h14V10"/><path d="M9 20v-6h6v6"/></svg>
+        Property
+      </button>
     </nav>
     <div class="side-foot">
       <div class="plan">
@@ -911,6 +915,7 @@ a.media-t:hover{color:var(--accent)}
     <!-- ===== MONITORING ===== -->
     <section class="view hide" id="view-monitoring"></section>
     <section class="view hide" id="view-analysis"></section>
+    <section class="view hide" id="view-property"></section>
   </div>
 </div>
 <div class="toasts" id="toasts"></div>
@@ -1324,6 +1329,7 @@ function setView(v){
   if(v==="ask") renderAsk();
   if(v==="monitoring") renderMonitoring();
   if(v==="analysis") renderAnalysis();
+  if(v==="property") renderProperty();
   if(v==="assess" && !state.current){
     const ve=$("#view-assess"); ve.innerHTML = assessEmpty();
     ve.querySelector("#assess-ex")?.addEventListener("click",ev=>{const c=ev.target.closest(".chip"); if(c) openAssess(c.dataset.q);});
@@ -2374,6 +2380,90 @@ function renderAnalysisBody(){
       <div style="font-family:var(--mono);font-size:10.5px;color:var(--ink-4);margin-top:10px">Illustrative wave model at the registered-office coordinate — not location-calibrated ocean data. Shows the engine composing off the geo spine.</div></div>`);
   }
   if(cards.length<=1){ cards.push(`<div class="card card-pad" style="color:var(--ink-3)">No analysis facets resolved — this entity needs a UK registered-office postcode.</div>`); }
+  b.innerHTML=`<div class="doss" style="margin-top:18px">${cards.join("")}</div><div class="spacer"></div>`;
+}
+
+/* ============================================================
+   PROPERTY — dedicated HM Land Registry area-valuation workspace
+   (postcode OR company → value, sold-price stats, location, national benchmark)
+   ============================================================ */
+let propertyState={q:"",loading:false,res:null,err:null};
+function renderProperty(){
+  const v=$("#view-property");
+  v.innerHTML=`
+    <div class="page-head">
+      <div class="page-eyebrow">Property · HM Land Registry Price Paid</div>
+      <h1 class="page-title">Property analysis</h1>
+      <p class="page-sub">Enter a UK postcode — or a company (we'll use its registered office). Indicative area value from HM Land Registry's open Price Paid data, with geographic context and a national benchmark.</p>
+    </div>
+    <div class="ask-wrap">
+      <div class="ask-box" style="display:flex;gap:10px;align-items:center">
+        <input id="prInput" type="text" autocomplete="off" spellcheck="false" style="flex:1;min-width:0" placeholder="Postcode (e.g. PL4 0DW) or company (e.g. Tesco PLC)…" value="${esc(propertyState.q)}">
+        <button class="btn btn-primary ask-go" id="prGo">Value</button>
+      </div>
+      <div class="chips" id="prChips">
+        ${["PL4 0DW","SW1A 1AA","M14 5TQ","Tesco PLC"].map(c=>`<button class="chip" data-q="${esc(c)}">${esc(c)}</button>`).join("")}
+      </div>
+      <div id="prBody"></div>
+    </div>`;
+  const go=()=>{const t=($("#prInput").value||"").trim(); if(t) runProperty(t);};
+  $("#prGo").addEventListener("click",go);
+  $("#prInput").addEventListener("keydown",e=>{if(e.key==="Enter")go();});
+  $("#prChips").addEventListener("click",e=>{const c=e.target.closest(".chip"); if(c){$("#prInput").value=c.dataset.q; runProperty(c.dataset.q);}});
+  renderPropertyBody();
+}
+async function runProperty(q){
+  propertyState={q:q,loading:true,res:null,err:null};
+  renderPropertyBody();
+  try{
+    const resp=await fetch("/api/property?q="+encodeURIComponent(q));
+    propertyState.res=await resp.json();
+  }catch(e){ propertyState.err=String((e&&e.message)||e); }
+  propertyState.loading=false;
+  renderPropertyBody();
+}
+function renderPropertyBody(){
+  const b=$("#prBody"); if(!b) return;
+  if(propertyState.loading){ b.innerHTML=`<div class="card card-pad" style="margin-top:16px;color:var(--ink-3)">Pulling HM Land Registry comparables…</div>`; return; }
+  if(propertyState.err){ b.innerHTML=`<div class="card card-pad" style="margin-top:16px;color:var(--accent)">Property lookup failed: ${esc(propertyState.err)}</div>`; return; }
+  const r=propertyState.res; if(!r){ b.innerHTML=""; return; }
+  const p=r.property||{}; const c=r.context||{};
+  const gbp=x=>isNum(x)?"£"+Math.round(x).toLocaleString("en-GB"):"—";
+  if(!r.postcode){ b.innerHTML=`<div class="card card-pad" style="margin-top:16px;color:var(--ink-3)">No UK postcode found for “${esc(r.query||"")}”. Try a postcode like PL4 0DW.</div>`; return; }
+  const avg=isNum(p.averageSoldPrice)?p.averageSoldPrice:null;
+  const cards=[];
+  if(avg!==null){
+    const nat=isNum(r.nationalAverage)?r.nationalAverage:null;
+    const delta=nat?Math.round((avg/nat-1)*100):null;
+    const deltaTxt=delta===null?"":` · ${delta>=0?"+":""}${delta}% vs ~${gbp(nat)} national avg`;
+    cards.push(`<div class="card card-pad" style="grid-column:1/-1">
+      <div class="lbl">Indicative area value · ${esc(r.postcode)}</div>
+      <div style="display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;margin-top:6px">
+        <div style="font-size:34px;font-weight:680;letter-spacing:-0.025em">${gbp(avg)}</div>
+        <div style="font-size:13px;color:var(--ink-3)">average sold price · ${isNum(p.transactionCount)?p.transactionCount.toLocaleString("en-GB"):0} sales${esc(deltaTxt)}</div>
+      </div>
+      ${p.note?`<div style="font-family:var(--mono);font-size:10.5px;color:var(--ink-4);margin-top:10px">${esc(p.note)}</div>`:""}</div>`);
+  } else {
+    cards.push(`<div class="card card-pad" style="grid-column:1/-1;color:var(--ink-3)">${esc(p.note||"No HM Land Registry sales found for this area yet (it may still be computing — try again in a moment).")}</div>`);
+  }
+  const row=(k,val)=>`<div style="display:flex;justify-content:space-between;gap:12px;padding:5px 0;border-bottom:1px solid var(--line)"><span style="font-size:12.5px;color:var(--ink-3)">${k}</span><span style="font-family:var(--mono);font-size:12.5px">${val}</span></div>`;
+  cards.push(`<div class="card card-pad"><div class="lbl">Sold-price stats</div><div style="margin-top:8px">
+    ${row("Average",gbp(p.averageSoldPrice))}
+    ${isNum(p.medianSoldPrice)?row("Median",gbp(p.medianSoldPrice)):""}
+    ${row("Lowest",gbp(p.lowestPrice))}
+    ${row("Highest",gbp(p.highestPrice))}
+    ${row("Sales",isNum(p.transactionCount)?p.transactionCount.toLocaleString("en-GB"):"—")}
+    ${row("Latest sale",isNum(p.latestSaleYear)?String(p.latestSaleYear):"—")}
+    ${p.topPropertyType?row("Top type",esc(p.topPropertyType)):""}
+  </div></div>`);
+  cards.push(`<div class="card card-pad"><div class="lbl">Location</div><div style="margin-top:8px">
+    ${row("Postcode",esc(r.postcode))}
+    ${c.ward?row("Ward",esc(c.ward)):""}
+    ${c.district?row("District",esc(c.district)):""}
+    ${c.region?row("Region",esc(c.region)):""}
+    ${c.country?row("Country",esc(c.country)):""}
+    ${isNum(c.latitude)?row("Coordinate",c.latitude.toFixed(3)+", "+c.longitude.toFixed(3)):""}
+  </div>${r.companyName?`<div style="font-size:12px;color:var(--ink-3);margin-top:9px">Registered office of <b>${esc(r.companyName)}</b></div>`:""}</div>`);
   b.innerHTML=`<div class="doss" style="margin-top:18px">${cards.join("")}</div><div class="spacer"></div>`;
 }
 

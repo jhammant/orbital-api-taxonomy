@@ -459,6 +459,43 @@ class Handler(BaseHTTPRequestHandler):
                 }
                 return self._send(200, json.dumps(resp))
 
+            if u.path == "/api/property":
+                # Dedicated property analysis. Accepts a UK postcode directly, OR a company name
+                # (resolved to its registered-office postcode). Combines postcodes.io geographic
+                # context with the HM Land Registry area valuation from deeptech-dd (:8930).
+                raw = (q.get("q", [""])[0] or "").strip()
+                is_pc = bool(re.match(r"^[A-Za-z]{1,2}\d[A-Za-z\d]?\s*\d[A-Za-z]{2}$", raw))
+                name = None
+                pc = raw.upper() if is_pc else ""
+                if not is_pc and raw:
+                    name = clean(raw)
+                    try:
+                        rk = http_json(f"{RISK_URL}/risk?q={urllib.parse.quote(name)}", 20)
+                        pc = (rk.get("postcode") or "").strip().upper()
+                        name = rk.get("companyName") or name
+                    except Exception:
+                        pass
+                ctx = {}
+                if pc:
+                    try:
+                        geo = http_json("https://api.postcodes.io/postcodes/" + urllib.parse.quote(pc), 8)
+                        res = geo.get("result") or {}
+                        ctx = {"district": res.get("admin_district"), "region": res.get("region"),
+                               "ward": res.get("admin_ward"), "country": res.get("country"),
+                               "latitude": res.get("latitude"), "longitude": res.get("longitude")}
+                    except Exception:
+                        ctx = {}
+                prop = None
+                if pc:
+                    try:
+                        prop = http_json("http://localhost:8930/property?postcode=" + urllib.parse.quote(pc), 8)
+                    except Exception:
+                        prop = None
+                resp = {"query": raw, "isPostcode": is_pc, "companyName": name,
+                        "postcode": pc, "context": ctx, "property": prop,
+                        "nationalAverage": 290000}
+                return self._send(200, json.dumps(resp))
+
             if u.path == "/api/suggest":
                 term = (q.get("q", [""])[0] or "").strip().upper()
                 if len(term) < 2 or not _NAMES_READY[0]:
