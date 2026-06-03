@@ -411,6 +411,54 @@ class Handler(BaseHTTPRequestHandler):
                 }
                 return self._send(200, json.dumps(resp))
 
+            if u.path == "/api/analysis":
+                # Deep-tech analysis workspace. Company (or postcode) -> registered-office
+                # coordinate -> deeptech-dd engine (:8930): real HM Land Registry property value,
+                # an *illustrative* wave-energy site model at that coordinate, and the independent
+                # deep-tech diligence verdict. Demonstrates the generic engine composing off the
+                # same geo spine the dossier uses (postcode -> lat/lon via postcodes.io).
+                name = clean(q.get("name", [""])[0])
+                pc = (q.get("postcode", [""])[0] or "").strip().upper()
+                if not pc and name:
+                    try:
+                        rk = http_json(f"{RISK_URL}/risk?q={urllib.parse.quote(name)}", 20)
+                        pc = (rk.get("postcode") or "").strip().upper()
+                        name = rk.get("companyName") or name
+                    except Exception:
+                        pass
+                lat = lon = None
+                if pc:
+                    try:
+                        geo = http_json("https://api.postcodes.io/postcodes/" + urllib.parse.quote(pc), 8)
+                        res = geo.get("result") or {}
+                        lat, lon = res.get("latitude"), res.get("longitude")
+                    except Exception:
+                        pass
+                DD = "http://localhost:8930"
+                prop = site = audit = None
+                if pc:
+                    try:
+                        prop = http_json(f"{DD}/property?postcode={urllib.parse.quote(pc)}", 8)
+                    except Exception:
+                        prop = None
+                if lat is not None and lon is not None:
+                    try:
+                        site = http_json(f"{DD}/site-economics?lat={lat}&lon={lon}", 25)
+                    except Exception:
+                        site = None
+                try:
+                    audit = http_json(f"{DD}/audit-verdict?technology=wave", 10)
+                except Exception:
+                    audit = None
+                resp = {
+                    "query": name or pc,
+                    "resolved": {"companyName": name, "postcode": pc, "latitude": lat, "longitude": lon},
+                    "property": prop,
+                    "siteEconomics": site,
+                    "auditVerdict": audit,
+                }
+                return self._send(200, json.dumps(resp))
+
             if u.path == "/api/suggest":
                 term = (q.get("q", [""])[0] or "").strip().upper()
                 if len(term) < 2 or not _NAMES_READY[0]:

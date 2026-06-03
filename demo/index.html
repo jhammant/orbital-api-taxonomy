@@ -867,6 +867,10 @@ a.media-t:hover{color:var(--accent)}
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
         Monitoring <span class="nav-count" id="nav-mon">0</span>
       </button>
+      <button class="nav-btn" data-view="analysis">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 2 7l10 5 10-5-10-5Z"/><path d="m2 17 10 5 10-5"/><path d="m2 12 10 5 10-5"/></svg>
+        Analysis
+      </button>
     </nav>
     <div class="side-foot">
       <div class="plan">
@@ -906,6 +910,7 @@ a.media-t:hover{color:var(--accent)}
     <section class="view hide" id="view-ask"></section>
     <!-- ===== MONITORING ===== -->
     <section class="view hide" id="view-monitoring"></section>
+    <section class="view hide" id="view-analysis"></section>
   </div>
 </div>
 <div class="toasts" id="toasts"></div>
@@ -1318,6 +1323,7 @@ function setView(v){
   if(v==="brain") Brain.render();
   if(v==="ask") renderAsk();
   if(v==="monitoring") renderMonitoring();
+  if(v==="analysis") renderAnalysis();
   if(v==="assess" && !state.current){
     const ve=$("#view-assess"); ve.innerHTML = assessEmpty();
     ve.querySelector("#assess-ex")?.addEventListener("click",ev=>{const c=ev.target.closest(".chip"); if(c) openAssess(c.dataset.q);});
@@ -2283,6 +2289,92 @@ function propertyCard(m){
     ${ptype?`<div style="margin-top:10px"><span class="ctrl-chip">${ptype}</span></div>`:""}
     ${p.note?`<div style="font-family:var(--mono);font-size:10.5px;color:var(--ink-4);margin-top:12px">${esc(p.note)}</div>`:""}`;
   return card;
+}
+
+/* ============================================================
+   DEEP-TECH ANALYSIS — the deeptech-dd engine as a workspace
+   (real property value + illustrative wave-site model + science diligence verdict)
+   ============================================================ */
+let analysisState={q:"",loading:false,res:null,err:null};
+function renderAnalysis(){
+  const v=$("#view-analysis");
+  v.innerHTML=`
+    <div class="page-head">
+      <div class="page-eyebrow">Deep-tech DD · the deeptech-dd engine</div>
+      <h1 class="page-title">Deep-tech analysis</h1>
+      <p class="page-sub">One company in. The generic analysis engine composes off its registered-office coordinate — a real HM Land Registry property value, an illustrative wave-energy site model, and the independent science-diligence verdict. Same geo spine as the dossier, zero per-source glue.</p>
+    </div>
+    <div class="ask-wrap">
+      <div class="ask-box">
+        <input id="anInput" type="text" autocomplete="off" spellcheck="false" placeholder="Any UK company — e.g. Tesco PLC, Barclays PLC…" value="${esc(analysisState.q)}">
+        <button class="btn btn-primary ask-go" id="anGo">Analyse</button>
+      </div>
+      <div class="chips" id="anChips">
+        ${["Tesco PLC","Barclays PLC","Promoat Limited"].map(c=>`<button class="chip" data-q="${esc(c)}">${esc(c)}</button>`).join("")}
+      </div>
+      <div id="anBody"></div>
+    </div>`;
+  const go=()=>{const t=($("#anInput").value||"").trim(); if(t) runAnalysis(t);};
+  $("#anGo").addEventListener("click",go);
+  $("#anInput").addEventListener("keydown",e=>{if(e.key==="Enter")go();});
+  $("#anChips").addEventListener("click",e=>{const c=e.target.closest(".chip"); if(c){$("#anInput").value=c.dataset.q; runAnalysis(c.dataset.q);}});
+  renderAnalysisBody();
+}
+async function runAnalysis(name){
+  analysisState={q:name,loading:true,res:null,err:null};
+  renderAnalysisBody();
+  try{
+    const resp=await fetch("/api/analysis?name="+encodeURIComponent(name));
+    analysisState.res=await resp.json();
+  }catch(e){ analysisState.err=String((e&&e.message)||e); }
+  analysisState.loading=false;
+  renderAnalysisBody();
+}
+function renderAnalysisBody(){
+  const b=$("#anBody"); if(!b) return;
+  if(analysisState.loading){ b.innerHTML=`<div class="card card-pad" style="margin-top:16px;color:var(--ink-3)">Composing analysis across the engine…</div>`; return; }
+  if(analysisState.err){ b.innerHTML=`<div class="card card-pad" style="margin-top:16px;color:var(--accent)">Analysis failed: ${esc(analysisState.err)}</div>`; return; }
+  const r=analysisState.res; if(!r){ b.innerHTML=""; return; }
+  const rz=r.resolved||{};
+  const gbp=x=>isNum(x)?"£"+Math.round(x).toLocaleString("en-GB"):"—";
+  const cards=[];
+  cards.push(`<div class="card card-pad"><div class="lbl">Resolved</div>
+    <div style="font-size:16px;font-weight:650;letter-spacing:-0.01em;margin-top:6px">${esc(rz.companyName||r.query||"—")}</div>
+    <div style="font-family:var(--mono);font-size:11.5px;color:var(--ink-3);margin-top:4px">${esc(rz.postcode||"—")}${isNum(rz.latitude)?" · "+rz.latitude.toFixed(3)+", "+rz.longitude.toFixed(3):""}</div></div>`);
+  const p=r.property;
+  if(p && isNum(p.averageSoldPrice)){
+    cards.push(`<div class="card card-pad"><div class="lbl">Property value · HM Land Registry</div>
+      <div style="font-size:27px;font-weight:650;letter-spacing:-0.02em;margin-top:6px">${gbp(p.averageSoldPrice)}</div>
+      <div style="font-size:12px;color:var(--ink-3)">average sold price · ${isNum(p.transactionCount)?p.transactionCount.toLocaleString("en-GB"):0} sales</div>
+      ${(isNum(p.lowestPrice)&&isNum(p.highestPrice))?`<div style="font-size:12.5px;color:var(--ink-3);margin-top:6px">range ${gbp(p.lowestPrice)} – ${gbp(p.highestPrice)}</div>`:""}
+      ${p.note?`<div style="font-family:var(--mono);font-size:10.5px;color:var(--ink-4);margin-top:10px">${esc(p.note)}</div>`:""}</div>`);
+  }
+  const a=r.auditVerdict;
+  if(a && a.verdict){
+    const vm={"GO":"GREEN","CONDITIONAL":"AMBER","NO-GO":"RED"};
+    const cls=vm[String(a.verdict).toUpperCase()]||"NEU";
+    const bl=Array.isArray(a.blockers)?a.blockers:[];
+    cards.push(`<div class="card card-pad"><div class="lbl">Deep-tech diligence · independent audit</div>
+      <div style="margin-top:9px"><span class="pill ${cls}"><span class="dot"></span>${esc(String(a.verdict).toUpperCase())}${isNum(a.score)?" · "+a.score+"/10":""}</span></div>
+      ${a.summary?`<div style="font-size:13px;line-height:1.6;color:var(--ink);margin-top:11px">${esc(a.summary)}</div>`:""}
+      ${bl.length?`<div class="lbl" style="margin-top:13px">Blockers · ${bl.length}</div><ul style="margin:7px 0 0;padding-left:18px;font-size:12.5px;color:var(--ink-2);line-height:1.55">${bl.slice(0,4).map(x=>`<li>${esc(typeof x==="string"?x:((x&&(x.title||x.finding||x.summary))||JSON.stringify(x)))}</li>`).join("")}</ul>`:""}</div>`);
+  }
+  const s=r.siteEconomics;
+  if(s && isNum(s.lcoe)){
+    const row=(k,val)=>`<div style="display:flex;justify-content:space-between;gap:12px;padding:4px 0;border-bottom:1px solid var(--line)"><span style="font-size:12.5px;color:var(--ink-3)">${k}</span><span style="font-family:var(--mono);font-size:12.5px">${val}</span></div>`;
+    cards.push(`<div class="card card-pad"><div class="lbl">Wave-energy site model · illustrative</div>
+      <div style="margin-top:8px">
+        ${row("Wave power density",(isNum(s.wavePowerDensity)?s.wavePowerDensity.toFixed(1):"—")+" kW/m")}
+        ${row("Rated power",(isNum(s.ratedPower)?Math.round(s.ratedPower).toLocaleString("en-GB"):"—")+" kW")}
+        ${row("Capacity factor",isNum(s.capacityFactor)?(s.capacityFactor*100).toFixed(1)+"%":"—")}
+        ${row("LCOE","£"+(isNum(s.lcoe)?Math.round(s.lcoe).toLocaleString("en-GB"):"—")+"/MWh")}
+        ${row("NPV",gbp(s.netPresentValue))}
+        ${row("Strategy score",isNum(s.strategyScore)?Math.round(s.strategyScore*100)+"/100":"—")}
+      </div>
+      <div style="font-family:var(--mono);font-size:10.5px;color:var(--ink-4);margin-top:10px">Illustrative wave model at the registered-office coordinate — not location-calibrated ocean data. Shows the engine composing off the geo spine.</div></div>`);
+  }
+  if(cards.length<=1){ cards.push(`<div class="card card-pad" style="color:var(--ink-3)">No analysis facets resolved — this entity needs a UK registered-office postcode.</div>`); }
+  b.innerHTML=`<div class="doss" style="margin-top:18px">${cards.join("")}</div><div class="spacer"></div>`;
 }
 
 /* ----- shared bits for the four new full-dossier cards ----- */
