@@ -2488,7 +2488,44 @@ function renderPropertyBody(){
   } else if(d.note){
     cards.push(`<div class="card card-pad" style="grid-column:1/-1;color:var(--ink-3);font-size:12.5px">${esc(d.note)}</div>`);
   }
+  // ----- neighbourhood: crime (police.uk) + flood (Environment Agency), keyless -----
+  const cr=r.crime, fl=r.flood;
+  if((cr&&isNum(cr.total)) || fl){
+    let inner="";
+    if(cr&&isNum(cr.total)){
+      const tot=cr.total||1;
+      const rows=(cr.byCategory||[]).slice(0,5).map(x=>{const pct=Math.round((x.count/tot)*100);return `<div style="padding:4px 0;border-bottom:1px solid var(--line)"><div style="display:flex;justify-content:space-between;font-size:12.5px"><span style="text-transform:capitalize">${esc(x.category)}</span><span style="font-family:var(--mono);color:var(--ink-3)">${x.count.toLocaleString("en-GB")}</span></div><div style="height:4px;background:var(--line);border-radius:2px;margin-top:4px"><div style="height:4px;width:${pct}%;background:var(--accent);border-radius:2px;opacity:.75"></div></div></div>`;}).join("");
+      inner+=`<div style="font-size:12.5px;color:var(--ink-3);margin-bottom:6px">${cr.total.toLocaleString("en-GB")} street crimes · latest month · police.uk (~1 mile)</div>${rows}`;
+    }
+    if(fl){
+      inner+=`<div style="margin-top:12px;font-size:12.5px"><span style="color:var(--ink-3)">Environment Agency flood areas within 8km: </span><b>${isNum(fl.areasNearby)?fl.areasNearby:0}</b>${(fl.nearest&&fl.nearest.length)?`<div style="font-family:var(--mono);font-size:10.5px;color:var(--ink-4);margin-top:5px">${fl.nearest.map(esc).join(" · ")}</div>`:""}</div>`;
+    }
+    cards.push(`<div class="card card-pad"><div class="lbl">Neighbourhood</div><div style="margin-top:8px">${inner}</div></div>`);
+  }
+  // ----- location map (Leaflet + OSM, keyless) -----
+  const cc=r.context||{};
+  const hasGeo=isNum(cc.latitude)&&isNum(cc.longitude);
+  if(hasGeo){ cards.push(`<div class="card card-pad" style="grid-column:1/-1"><div class="lbl">Location map</div><div id="prMap" style="height:320px;margin-top:10px;border-radius:8px;overflow:hidden;background:var(--line)"></div></div>`); }
   b.innerHTML=`<div class="doss" style="margin-top:18px">${cards.join("")}</div><div class="spacer"></div>`;
+  if(hasGeo) ensureLeaflet(()=>initPropertyMap(cc.latitude,cc.longitude,r.postcode));
+}
+function ensureLeaflet(cb){
+  if(window.L){ cb(); return; }
+  if(!document.getElementById('leaflet-css')){
+    const lk=document.createElement('link'); lk.id='leaflet-css'; lk.rel='stylesheet'; lk.href='https://unpkg.com/leaflet@1.9.4/dist/leaflet.css'; document.head.appendChild(lk);
+  }
+  let s=document.getElementById('leaflet-js');
+  if(!s){ s=document.createElement('script'); s.id='leaflet-js'; s.src='https://unpkg.com/leaflet@1.9.4/dist/leaflet.js'; s.onload=()=>cb(); s.onerror=()=>{const m=document.getElementById('prMap'); if(m) m.innerHTML='<div style="padding:14px;color:var(--ink-3);font-size:12px">Map unavailable (couldn\'t load Leaflet).</div>';}; document.head.appendChild(s); }
+  else { s.addEventListener('load',()=>cb()); }
+}
+let _prMap=null;
+function initPropertyMap(lat,lon,label){
+  const el=document.getElementById('prMap'); if(!el||!window.L) return;
+  if(_prMap){ try{_prMap.remove();}catch(e){} _prMap=null; }
+  _prMap=L.map(el,{scrollWheelZoom:false}).setView([lat,lon],14);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© OpenStreetMap'}).addTo(_prMap);
+  L.marker([lat,lon]).addTo(_prMap).bindPopup(label||(lat+', '+lon)).openPopup();
+  setTimeout(()=>{try{_prMap.invalidateSize();}catch(e){}},150);
 }
 
 /* ----- shared bits for the four new full-dossier cards ----- */

@@ -495,9 +495,30 @@ class Handler(BaseHTTPRequestHandler):
                         detail = http_json("http://localhost:8930/property-detail?postcode=" + urllib.parse.quote(pc), 8)
                     except Exception:
                         detail = None
+                # Neighbourhood signals from the coordinate (keyless: police.uk crime + EA flood areas).
+                crime = flood = None
+                _lat, _lon = ctx.get("latitude"), ctx.get("longitude")
+                if _lat is not None and _lon is not None:
+                    try:
+                        cr = http_json(f"https://data.police.uk/api/crimes-street/all-crime?lat={_lat}&lng={_lon}", 20)
+                        cnt = {}
+                        for x in cr:
+                            k = (x.get("category") or "").replace("-", " ")
+                            cnt[k] = cnt.get(k, 0) + 1
+                        top = sorted(cnt.items(), key=lambda kv: -kv[1])[:6]
+                        crime = {"total": len(cr), "byCategory": [{"category": k, "count": v} for k, v in top]}
+                    except Exception:
+                        crime = None
+                    try:
+                        fa = http_json(f"https://environment.data.gov.uk/flood-monitoring/id/floodAreas?lat={_lat}&long={_lon}&dist=8", 15)
+                        items = fa.get("items", []) if isinstance(fa, dict) else []
+                        flood = {"areasNearby": len(items),
+                                 "nearest": [x.get("description", "") for x in items[:3] if x.get("description")]}
+                    except Exception:
+                        flood = None
                 resp = {"query": raw, "isPostcode": is_pc, "companyName": name,
                         "postcode": pc, "context": ctx, "property": prop, "detail": detail,
-                        "nationalAverage": 290000}
+                        "crime": crime, "flood": flood, "nationalAverage": 290000}
                 return self._send(200, json.dumps(resp))
 
             if u.path == "/api/suggest":
