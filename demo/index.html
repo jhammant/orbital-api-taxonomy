@@ -2464,6 +2464,30 @@ function renderPropertyBody(){
     ${c.country?row("Country",esc(c.country)):""}
     ${isNum(c.latitude)?row("Coordinate",c.latitude.toFixed(3)+", "+c.longitude.toFixed(3)):""}
   </div>${r.companyName?`<div style="font-size:12px;color:var(--ink-3);margin-top:9px">Registered office of <b>${esc(r.companyName)}</b></div>`:""}</div>`);
+  // ----- richer detail: price trend, property-type mix, recent comparables (non-blocking) -----
+  const d=r.detail||{};
+  const typeLabel=t=>{const m={"otherpropertytype":"Other","flat maisonette":"Flat / maisonette","semi detached":"Semi-detached"};const k=String(t||"").toLowerCase();return m[k]||(t?t.charAt(0).toUpperCase()+t.slice(1):"—");};
+  const byYear=Array.isArray(d.byYear)?d.byYear.filter(y=>isNum(y.year)&&isNum(y.avg)).slice().sort((a,b)=>a.year-b.year):[];
+  const byType=Array.isArray(d.byType)?d.byType.filter(t=>isNum(t.count)):[];
+  const recent=Array.isArray(d.recentSales)?d.recentSales:[];
+  if(byYear.length>=2){
+    const mx=Math.max(...byYear.map(y=>y.avg));
+    const bars=byYear.map(y=>{const h=Math.max(6,Math.round(y.avg/mx*88));return `<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:5px;min-width:0"><div title="${esc(gbp(y.avg))}" style="width:62%;height:${h}px;background:var(--accent);border-radius:3px 3px 0 0;opacity:.85"></div><div style="font-family:var(--mono);font-size:9.5px;color:var(--ink-4)">'${String(y.year).slice(2)}</div></div>`;}).join("");
+    const f=byYear[0],l=byYear[byYear.length-1],chg=f.avg?Math.round((l.avg/f.avg-1)*100):null;
+    cards.push(`<div class="card card-pad" style="grid-column:1/-1"><div class="lbl">Price trend · ${esc(String(f.year))}–${esc(String(l.year))}${chg===null?"":` · ${chg>=0?"+":""}${chg}%`}</div>
+      <div style="display:flex;align-items:flex-end;gap:6px;height:102px;margin-top:12px">${bars}</div></div>`);
+  }
+  if(byType.length){
+    const tot=byType.reduce((s,t)=>s+(t.count||0),0)||1;
+    const rows=byType.slice(0,6).map(t=>{const pct=Math.round((t.count/tot)*100);return `<div style="padding:5px 0;border-bottom:1px solid var(--line)"><div style="display:flex;justify-content:space-between;font-size:12.5px"><span>${esc(typeLabel(t.type))}</span><span style="font-family:var(--mono);color:var(--ink-3)">${pct}% · ${gbp(t.avg)}</span></div><div style="height:4px;background:var(--line);border-radius:2px;margin-top:4px"><div style="height:4px;width:${pct}%;background:var(--accent);border-radius:2px;opacity:.8"></div></div></div>`;}).join("");
+    cards.push(`<div class="card card-pad"><div class="lbl">Property-type mix</div><div style="margin-top:8px">${rows}</div></div>`);
+  }
+  if(recent.length){
+    const rows=recent.slice(0,8).map(s=>`<div style="display:flex;justify-content:space-between;gap:10px;padding:5px 0;border-bottom:1px solid var(--line);font-size:12.5px"><span style="font-family:var(--mono);color:var(--ink-3)">${esc(s.date||"")}</span><span style="flex:1;color:var(--ink-3)">${esc(typeLabel(s.type))}</span><span style="font-family:var(--mono)">${gbp(s.price)}</span></div>`).join("");
+    cards.push(`<div class="card card-pad"><div class="lbl">Recent sales · ${esc(r.postcode)} district</div><div style="margin-top:8px">${rows}</div></div>`);
+  } else if(d.note){
+    cards.push(`<div class="card card-pad" style="grid-column:1/-1;color:var(--ink-3);font-size:12.5px">${esc(d.note)}</div>`);
+  }
   b.innerHTML=`<div class="doss" style="margin-top:18px">${cards.join("")}</div><div class="spacer"></div>`;
 }
 

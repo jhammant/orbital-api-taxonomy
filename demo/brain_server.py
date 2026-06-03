@@ -485,14 +485,18 @@ class Handler(BaseHTTPRequestHandler):
                                "latitude": res.get("latitude"), "longitude": res.get("longitude")}
                     except Exception:
                         ctx = {}
-                prop = None
+                prop = detail = None
                 if pc:
                     try:
                         prop = http_json("http://localhost:8930/property?postcode=" + urllib.parse.quote(pc), 8)
                     except Exception:
                         prop = None
+                    try:
+                        detail = http_json("http://localhost:8930/property-detail?postcode=" + urllib.parse.quote(pc), 8)
+                    except Exception:
+                        detail = None
                 resp = {"query": raw, "isPostcode": is_pc, "companyName": name,
-                        "postcode": pc, "context": ctx, "property": prop,
+                        "postcode": pc, "context": ctx, "property": prop, "detail": detail,
                         "nationalAverage": 290000}
                 return self._send(200, json.dumps(resp))
 
