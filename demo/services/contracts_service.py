@@ -20,7 +20,7 @@ company-360 gains a "where does it earn its public money" lens.
 import datetime, json, os, re, socketserver, sqlite3, urllib.parse
 from http.server import BaseHTTPRequestHandler
 
-DB_PATH = os.environ.get("CONTRACTS_DB", "/Users/jhammant/dev/gcloud-intel/data/db.sqlite")
+DB_PATH = os.environ.get("CONTRACTS_DB", "/Users/jhammant/dev/oss/research/gcloud-intel/data/db.sqlite")
 HOST = os.environ.get("CONTRACTS_HOST", "0.0.0.0")
 PORT = int(os.environ.get("CONTRACTS_PORT", "8923"))
 CH_RE = re.compile(r"^[A-Z0-9]{6,10}$")

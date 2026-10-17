@@ -51,7 +51,7 @@ CH_BASE = os.environ.get(
 HTTP_TIMEOUT = int(os.environ.get("FINANCIALS_HTTP_TIMEOUT", "20"))
 # Corpus is used ONLY to resolve a name -> company number (never for financial facts).
 DB_PATH = os.environ.get(
-    "GCLOUD_INTEL_DB", "/Users/jhammant/dev/gcloud-intel/data/db.sqlite")
+    "GCLOUD_INTEL_DB", "/Users/jhammant/dev/oss/research/gcloud-intel/data/db.sqlite")
 
 # Companies House numbers: 8 digits, or 2-char prefix (SC/NI/OC/...) + 6 digits.
 CH_NUMBER_RE = re.compile(r"^[A-Z0-9]{2}[0-9]{6}$|^[0-9]{8}$")

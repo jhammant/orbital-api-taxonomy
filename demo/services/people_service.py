@@ -30,7 +30,7 @@ import urllib.parse
 import urllib.request
 from http.server import BaseHTTPRequestHandler
 
-DB_PATH = os.environ.get("PEOPLE_DB", "/Users/jhammant/dev/gcloud-intel/data/db.sqlite")
+DB_PATH = os.environ.get("PEOPLE_DB", "/Users/jhammant/dev/oss/research/gcloud-intel/data/db.sqlite")
 HOST = os.environ.get("PEOPLE_HOST", "0.0.0.0")
 PORT = int(os.environ.get("PEOPLE_PORT", "8920"))
 

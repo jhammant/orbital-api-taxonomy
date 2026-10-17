@@ -37,7 +37,7 @@ DISQ_URL = os.environ.get("DISQ_URL", "http://127.0.0.1:8925")            # dire
 GAZETTE_URL = os.environ.get("GAZETTE_URL", "http://127.0.0.1:8926")      # The Gazette official insolvency notices
 FIN_URL = os.environ.get("FIN_URL", "http://127.0.0.1:8927")             # financial health (CH accounts)
 GDELT_URL = os.environ.get("GDELT_URL", "http://127.0.0.1:8928")         # GDELT global media + sentiment
-CORPUS_DB = os.environ.get("RISK_DB", "/Users/jhammant/dev/gcloud-intel/data/db.sqlite")  # for /api/suggest autocomplete
+CORPUS_DB = os.environ.get("RISK_DB", "/Users/jhammant/dev/oss/research/gcloud-intel/data/db.sqlite")  # for /api/suggest autocomplete
 PORT = int(os.environ.get("BRAIN_PORT", "8848"))
 
 # In-memory company-name index for instant /api/suggest type-ahead. Warm-loaded once in a

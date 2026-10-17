@@ -2,7 +2,7 @@
 """Insolvency-intelligence micro-service for The Company Brain.
 
 Routes a UK Companies House company number into the real distress corpus held at
-/Users/jhammant/dev/gcloud-intel (SQLite, ~21.4M records: Gazette insolvency
+/Users/jhammant/dev/oss/research/gcloud-intel (SQLite, ~21.4M records: Gazette insolvency
 notices + Companies House bulk + PSC ownership + G-Cloud/DOS government awards).
 
 Read-only. Pure Python stdlib — no dependencies.
@@ -27,7 +27,7 @@ import urllib.parse
 from http.server import BaseHTTPRequestHandler
 
 DB_PATH = os.environ.get(
-    "GCLOUD_INTEL_DB", "/Users/jhammant/dev/gcloud-intel/data/db.sqlite")
+    "GCLOUD_INTEL_DB", "/Users/jhammant/dev/oss/research/gcloud-intel/data/db.sqlite")
 PORT = int(os.environ.get("INSOLVENCY_PORT", "8901"))
 HOST = os.environ.get("INSOLVENCY_HOST", "127.0.0.1")
 

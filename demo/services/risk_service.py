@@ -12,7 +12,7 @@ graph + concrete red flags.  Read-only over the corpus.
 import json, os, re, socketserver, urllib.parse
 from http.server import BaseHTTPRequestHandler
 
-DB_PATH = os.environ.get("RISK_DB", "/Users/jhammant/dev/gcloud-intel/data/db.sqlite")
+DB_PATH = os.environ.get("RISK_DB", "/Users/jhammant/dev/oss/research/gcloud-intel/data/db.sqlite")
 HOST = os.environ.get("RISK_HOST", "0.0.0.0")
 PORT = int(os.environ.get("RISK_PORT", "8907"))
 CH_RE = re.compile(r"^[A-Z0-9]{6,10}$")
